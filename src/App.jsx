@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { Turnstile } from '@marsidev/react-turnstile'
 import { getSupabase, isConfigured } from './supabaseClient.js'
 import { IMG, HOTELS, GALLERY, STEPS, POSITIONS, STATS } from './data.js'
 
@@ -101,6 +102,87 @@ function useCandidate(session) {
   }
 
   return { cand, loading, updateProfile }
+}
+
+const documentsApiUrl = import.meta.env.VITE_DOCUMENTS_API_URL
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+
+function useDocuments(session) {
+  const [documents, setDocuments] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const request = async (path, options = {}) => {
+    if (!documentsApiUrl || !session?.access_token) {
+      throw new Error('API dokumen belum dikonfigurasi.')
+    }
+    const response = await fetch(`${documentsApiUrl}${path}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        ...options.headers,
+      },
+    })
+    const payload = response.status === 204 ? null : await response.json()
+    if (!response.ok) throw new Error(payload?.error || 'Gagal memproses dokumen.')
+    return payload
+  }
+
+  const refresh = async () => {
+    if (!session || !documentsApiUrl) return
+    setLoading(true)
+    try {
+      const payload = await request('/documents')
+      setDocuments(payload.documents || [])
+      setError('')
+    } catch (requestError) {
+      setError(requestError.message)
+      throw requestError
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    setDocuments([])
+    if (!session || !documentsApiUrl) return
+    refresh().catch(() => undefined)
+  }, [session])
+
+  const upload = async (file, turnstileToken) => {
+    const body = new FormData()
+    body.append('file', file)
+    await request('/documents', {
+      method: 'POST',
+      body,
+      headers: { 'X-Turnstile-Token': turnstileToken },
+    })
+    await refresh()
+  }
+
+  const download = async (document) => {
+    const response = await fetch(`${documentsApiUrl}/documents/${encodeURIComponent(document.id)}`, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      throw new Error(payload?.error || 'Gagal mengunduh dokumen.')
+    }
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const anchor = window.document.createElement('a')
+    anchor.href = url
+    anchor.download = document.file_name
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const remove = async (document) => {
+    await request(`/documents/${encodeURIComponent(document.id)}`, { method: 'DELETE' })
+    setDocuments((current) => current.filter((item) => item.id !== document.id))
+  }
+
+  return { documents, loading, error, upload, download, remove }
 }
 
 /* ---------------- Komponen: scroll reveal ---------------- */
@@ -286,7 +368,10 @@ function Gallery() {
 /* ---------------- Auth + Dashboard ---------------- */
 function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut }) {
   const { cand, loading: candLoading, updateProfile } = useCandidate(session)
+  const { documents, loading: documentsLoading, error: documentsError, upload, download, remove } = useDocuments(session)
   const [form, setForm] = useState(null)
+  const [documentBusy, setDocumentBusy] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -325,6 +410,36 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const copyId = async () => {
     try { await navigator.clipboard.writeText(cand.candidate_id) } catch { /* abaikan */ }
     setCopied(true); setTimeout(() => setCopied(false), 1800)
+  }
+
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setErr('')
+    setDocumentBusy(true)
+    try {
+      if (!turnstileSiteKey) throw new Error('Verifikasi keamanan belum dikonfigurasi.')
+      if (!turnstileToken) throw new Error('Selesaikan verifikasi keamanan terlebih dahulu.')
+      await upload(file, turnstileToken)
+      setTurnstileToken('')
+    } catch (error) {
+      setErr(error.message)
+    } finally {
+      setDocumentBusy(false)
+    }
+  }
+
+  const handleDocumentAction = async (action) => {
+    setErr('')
+    setDocumentBusy(true)
+    try {
+      await action()
+    } catch (error) {
+      setErr(error.message)
+    } finally {
+      setDocumentBusy(false)
+    }
   }
 
   const meta = session?.user?.user_metadata || {}
@@ -396,7 +511,52 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
 
               {cand?.status && <div style={{ marginBottom: 18 }}><span className="status-chip">{cand.status}</span></div>}
               {err && <div className="err-box">{err}</div>}
+              {documentsError && !err && <div className="err-box">{documentsError}</div>}
               {saved && <div className="ok-box">✓ Data tersimpan. Tim rekrutmen kami akan menghubungi Anda melalui nomor telepon &amp; email terdaftar.</div>}
+
+              <div className="documents-card">
+                <div className="documents-head">
+                  <div>
+                    <div className="field-label">Berkas Kandidat</div>
+                    <p>Upload CV, paspor, sertifikat, atau dokumen pendukung lainnya.</p>
+                  </div>
+                  <label className={`upload-btn ${documentBusy ? 'disabled' : ''}`}>
+                    {documentBusy ? 'Memproses…' : 'Tambah Dokumen'}
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleUpload} disabled={documentBusy || !documentsApiUrl} />
+                  </label>
+                </div>
+                {turnstileSiteKey && (
+                  <div className="turnstile-box">
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      options={{ action: 'document-upload', theme: 'light' }}
+                      onSuccess={setTurnstileToken}
+                      onExpire={() => setTurnstileToken('')}
+                      onError={() => setTurnstileToken('')}
+                    />
+                  </div>
+                )}
+                {!documentsApiUrl && <p className="document-note">Upload dokumen belum aktif karena API Cloudflare belum dikonfigurasi.</p>}
+                {!turnstileSiteKey && <p className="document-note">Upload dokumen belum aktif karena Turnstile belum dikonfigurasi.</p>}
+                {documentsLoading ? <p className="document-note">Memuat daftar dokumen…</p> : documents.length === 0 ? (
+                  <p className="document-note">Belum ada dokumen yang diupload.</p>
+                ) : (
+                  <ul className="document-list">
+                    {documents.map((document) => (
+                      <li key={document.id}>
+                        <div>
+                          <b>{document.file_name}</b>
+                          <span>{Math.ceil(document.file_size / 1024)} KB · {new Date(document.created_at).toLocaleDateString('id-ID')}</span>
+                        </div>
+                        <div className="document-actions">
+                          <button type="button" onClick={() => handleDocumentAction(() => download(document))} disabled={documentBusy}>Unduh</button>
+                          <button type="button" onClick={() => handleDocumentAction(() => remove(document))} disabled={documentBusy}>Hapus</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {form && (
                 <form className="form-grid" onSubmit={save}>

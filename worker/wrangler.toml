@@ -1,0 +1,16 @@
+name = "juaraind-documents"
+main = "src/index.js"
+compatibility_date = "2026-09-15"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "juaraind-documents"
+database_id = "4d029e67-8e14-4d68-a2ca-b26154ddeccd"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "juaraind-documents"
+
+[vars]
+ALLOWED_ORIGIN = "https://juaraind.com"
