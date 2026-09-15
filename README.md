@@ -3,7 +3,7 @@
 Website agency penempatan kettenagakerjaan **Indonesia → Turki** (hotel-hotel bintang lima).
 Dibangun dengan **React + Vite**, database **Supabase**, login **Google**, dan deploy **GitHub Pages via GitHub Actions**.
 
-Setiap kandidat yang mendaftar otomatis mendapat **ID unik permanen** (contoh: `TKI-2026-00001`)
+Setiap kandidat yang mendaftar otomatis mendapat **ID unik permanen**
 yang diterbitkan oleh trigger database (bukan random di client) — mudah dipanggil ulang oleh petugas agency.
 
 ---

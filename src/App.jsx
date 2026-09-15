@@ -348,7 +348,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
           <div className="sec-kicker">Pendaftaran Kandidat</div>
           <h2 className="sec-title">Satu akun Google, <em>satu ID unik</em> untuk Anda</h2>
           <p className="sec-desc">
-            Setiap kandidat menerima <b>ID Kandidat permanen</b> (contoh: <code>TKI-2026-00001</code>).
+            Setiap kandidat menerima <b>ID Kandidat permanen</b> setelah akun terhubung.
             Sebutkan ID ini saat menghubungi kantor agency — seluruh berkas Anda bisa langsung dipanggil tanpa mencari ulang.
           </p>
           <ul style={{ listStyle: 'none', display: 'grid', gap: 12, fontSize: 14, color: 'var(--ink-soft)' }}>

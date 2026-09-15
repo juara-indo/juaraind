@@ -94,7 +94,7 @@ export const STEPS = [
   {
     no: '01',
     title: 'Daftar & Dapatkan ID',
-    desc: 'Login dengan Google, lengkapi profil, dan sistem langsung menerbitkan ID Kandidat unik Anda — mis. TKI-2026-00001. Simpan ID ini: itulah kunci pemanggilan data Anda di kantor agency.',
+    desc: 'Login dengan Google, lengkapi profil, dan sistem langsung menerbitkan ID Kandidat unik Anda. Simpan ID ini: itulah kunci pemanggilan data Anda di kantor agency.',
   },
   {
     no: '02',
