@@ -6,7 +6,7 @@
 --    isi Client ID & Client Secret dari Google Cloud Console
 --    (OAuth consent screen + OAuth 2.0 Client ID, tipe Web)
 -- 4) Authentication → URL Configuration → Site URL & Redirect URLs
---    tambahkan: https://juaraind.com
+--    tambahkan: https://<username>.github.io/<nama-repo>/
 -- ============================================================
 
 create extension if not exists "pgcrypto";

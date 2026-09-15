@@ -6,13 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "worker:dev": "cd worker && wrangler dev",
-    "worker:migrate": "cd worker && wrangler d1 migrations apply juaraind-documents --remote",
-    "worker:deploy": "cd worker && wrangler deploy"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@marsidev/react-turnstile": "^1.6.1",
     "@supabase/supabase-js": "^2.45.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -21,7 +17,6 @@
     "@vitejs/plugin-react": "^4.3.1",
     "sharp": "^0.35.4",
     "vite": "^5.4.8",
-    "vite-plugin-singlefile": "^2.0.2",
-    "wrangler": "^4.131.2"
+    "vite-plugin-singlefile": "^2.0.2"
   }
 }
