@@ -382,7 +382,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
               </button>
               <p className="auth-note">
                 Dengan mendaftar, Anda menyetujui proses verifikasi dokumen dan seleksi oleh tim
-                PT. JUAARA. Data Anda tidak dibagikan ke pihak ketiga tanpa persetujuan.
+                PT. JUARA. Data Anda tidak dibagikan ke pihak ketiga tanpa persetujuan.
               </p>
             </>
           ) : (
@@ -455,9 +455,9 @@ function Footer() {
     <footer>
       <div className="foot-grid">
         <div>
-          <div className="foot-brand">PT. JUAARA</div>
+          <div className="foot-brand">PT. JUARA</div>
           <p className="foot-desc">
-            Agensi penempatan kettenagakerjaan Indonesia → Turki. Berbasis di Jakarta dengan kantor
+            Agensi penempatan ketenagakerjaan Indonesia → Turki. Berbasis di Jakarta dengan kantor
             perwakilan di Istanbul. Terikat prinsip penempatan yang etis, kontrak transparan, dan
             perlindungan pekerja migran.
           </p>
@@ -479,7 +479,7 @@ function Footer() {
         </div>
       </div>
       <div className="foot-bottom">
-        <span>© 2026 PT. JUAARA — PT Anadolu Talenta Nusantara</span>
+        <span>© 2026 PT. JUARA — PT Anadolu Talenta Nusantara</span>
         <span>Jakarta ✦ Istanbul</span>
       </div>
     </footer>
