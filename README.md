@@ -33,6 +33,10 @@ anatolia-karier/
 ├── .gitignore
 ├── supabase/
 │   └── schema.sql           # tabel candidates + RLS + trigger ID unik
+├── worker/
+│   ├── migrations/          # skema metadata dokumen di Cloudflare D1
+│   ├── src/index.js         # API upload/download/delete dokumen
+│   └── wrangler.toml        # binding D1 + R2
 ├── .github/workflows/deploy.yml  # CI deploy otomatis ke GitHub Pages
 └── src/
     ├── main.jsx
@@ -58,8 +62,8 @@ anatolia-karier/
      `https://<project-ref>.supabase.co/auth/v1/callback`
      (lihat di Supabase: Authentication → Providers → Google, ada contoh callback URL-nya).
 4. **Authentication → URL Configuration**:
-   - **Site URL**: `https://<username>.github.io/<nama-repo>/`
-   - **Redirect URLs**: tambahkan juga URL yang sama.
+   - **Site URL**: `https://juaraind.com`
+   - **Redirect URLs**: tambahkan juga `https://juaraind.com`.
 5. Salin dari **Project Settings → API**: `Project URL` dan `anon public key`.
 
 ### 2) Konfigurasi .env
@@ -96,6 +100,51 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # hasil build ada di dist/
 ```
+
+### 5) Cloudflare — penyimpanan dokumen peserta
+
+Langkah ini menggunakan Supabase untuk login dan profil kandidat, sementara file
+disimpan privat di Cloudflare R2 dan metadata file disimpan di Cloudflare D1.
+
+1. Instal Wrangler dan login:
+   ```bash
+   npm install -g wrangler
+   wrangler login
+   ```
+2. Buat database D1 dan bucket R2:
+   ```bash
+   cd worker
+   wrangler d1 create juaraind-documents
+   wrangler r2 bucket create juaraind-documents
+   ```
+3. Salin `database_id` dari output perintah D1 ke `worker/wrangler.toml`.
+   `ALLOWED_ORIGIN` sudah disetel ke `https://juaraind.com`, sesuai file `public/CNAME`.
+4. Jalankan migrasi:
+   ```bash
+   wrangler d1 migrations apply juaraind-documents --remote
+   ```
+5. Simpan konfigurasi Supabase sebagai secret Worker:
+   ```bash
+   wrangler secret put SUPABASE_URL
+   wrangler secret put SUPABASE_ANON_KEY
+   ```
+6. Deploy API:
+   ```bash
+   wrangler deploy
+   ```
+7. Isi `VITE_DOCUMENTS_API_URL` di `.env` dan di GitHub Actions secrets
+   dengan URL Worker berikut:
+   `https://juaraind-documents.juaraind-documents.workers.dev`
+8. Buat widget Turnstile di Cloudflare Dashboard, tambahkan domain `juaraind.com`,
+   lalu simpan Site Key sebagai `VITE_TURNSTILE_SITE_KEY` di `.env` dan GitHub Actions.
+   Simpan Secret Key sebagai secret Worker:
+   ```bash
+   wrangler secret put TURNSTILE_SECRET_KEY
+   ```
+
+Worker memvalidasi session Supabase sebelum setiap operasi. File hanya dapat
+diakses oleh kandidat pemiliknya, dibatasi ke PDF/JPG/PNG dengan ukuran maksimal
+5 MB, dan tidak menggunakan URL R2 publik.
 
 ---
 
