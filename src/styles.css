@@ -38,6 +38,48 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
+.maintenance-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(200, 147, 58, 0.2), transparent 34%),
+    var(--bg);
+}
+.maintenance-card {
+  width: min(100%, 620px);
+  padding: clamp(36px, 8vw, 80px) clamp(28px, 7vw, 72px);
+  text-align: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 12px 12px 0 rgba(179, 38, 30, 0.12);
+}
+.maintenance-logo {
+  width: min(190px, 70%);
+  height: auto;
+  margin: 0 auto 28px;
+}
+.maintenance-kicker {
+  color: var(--crimson);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.maintenance-card h1 {
+  font-family: var(--serif);
+  font-size: clamp(34px, 6vw, 58px);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.maintenance-copy {
+  max-width: 38ch;
+  margin: 24px auto 0;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
 img { display: block; max-width: 100%; }
 button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; }

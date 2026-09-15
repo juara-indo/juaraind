@@ -12,6 +12,23 @@ const GoogleIcon = ({ size = 20 }) => (
   </svg>
 )
 
+const maintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
+
+function MaintenancePage() {
+  return (
+    <main className="maintenance-page">
+      <div className="maintenance-card">
+        <img className="maintenance-logo" src="/images/logojuara.svg" alt="Juara" />
+        <p className="maintenance-kicker">Juara · Indonesia → Turki</p>
+        <h1>Kami sedang menyiapkan sesuatu yang lebih baik.</h1>
+        <p className="maintenance-copy">
+          Website sedang dalam tahap penyempurnaan. Silakan kembali lagi dalam waktu dekat.
+        </p>
+      </div>
+    </main>
+  )
+}
+
 const Pin = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="3" />
@@ -526,6 +543,8 @@ function ScrollIndicator() {
 
 /* ---------------- App ---------------- */
 export default function App() {
+  if (maintenanceMode) return <MaintenancePage />
+
   const { session, loading, signInWithGoogle, signOut } = useSession()
   return (
     <>
