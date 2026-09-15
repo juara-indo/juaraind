@@ -86,16 +86,6 @@ function useCandidate(session) {
       if (!supabase) { if (alive) setLoading(false); return }
       const uid = session.user.id
       let { data } = await supabase.from('candidates').select('*').eq('id', uid).maybeSingle()
-      if (!data && alive) {
-        // fallback jika trigger belum jalan (mis. dibuat sebelum skema dipasang)
-        const meta = session.user.user_metadata || {}
-        const ins = await supabase
-          .from('candidates')
-          .insert({ id: uid, full_name: meta.full_name || meta.name || '' })
-          .select()
-          .single()
-        data = ins.data
-      }
       if (alive) { setCand(data); setLoading(false) }
     })()
     return () => { alive = false }
@@ -326,7 +316,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
       phone: form.phone.trim(),
       position: form.position,
       experience: form.experience.trim(),
-      status: 'Terdaftar — Menunggu Seleksi',
     })
     setSaving(false)
     if (error) setErr('Gagal menyimpan: ' + error.message)
@@ -413,11 +402,11 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                 <form className="form-grid" onSubmit={save}>
                   <div className="field full">
                     <label>Nama Lengkap (sesuai paspor)</label>
-                    <input value={form.full_name} onChange={set('full_name')} placeholder="cth. Rizky Pratama" required />
+                    <input value={form.full_name} onChange={set('full_name')} placeholder="cth. Rizky Pratama" maxLength={160} required />
                   </div>
                   <div className="field">
                     <label>Nomor WhatsApp</label>
-                    <input value={form.phone || ''} onChange={set('phone')} placeholder="+62 8xx-xxxx-xxxx" />
+                    <input value={form.phone || ''} onChange={set('phone')} placeholder="+62 8xx-xxxx-xxxx" maxLength={32} />
                   </div>
                   <div className="field">
                     <label>Posisi yang Diincar</label>
@@ -432,6 +421,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       value={form.experience || ''}
                       onChange={set('experience')}
                       placeholder="cth. 3 tahun waiter di hotel bintang 4 di Bali; dasar bahasa Inggris aktif…"
+                      maxLength={2000}
                     />
                   </div>
                   <div className="full">

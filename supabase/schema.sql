@@ -10,27 +10,84 @@
 -- ============================================================
 
 create extension if not exists "pgcrypto";
+create sequence if not exists public.candidate_id_seq start 1;
 
 -- ------------------------------------------------------------
 -- 1. Tabel kandidat
 -- ------------------------------------------------------------
 create table if not exists public.candidates (
   id             uuid primary key references auth.users(id) on delete cascade,
-  candidate_id   text unique,                      -- contoh: TKI-2026-00001
-  full_name      text,
-  phone          text,
-  position       text,                             -- posisi yang dipilih
-  experience     text,                             -- pengalaman kerja singkat
-  status         text not null default 'Pendaftaran Baru',
+  candidate_id   text unique not null,              -- contoh: TKI-2026-00001
+  full_name      text not null default '' check (char_length(full_name) <= 160),
+  phone          text check (phone is null or char_length(phone) <= 32),
+  position       text check (position is null or position in (
+    'F&B Service (Waiter/Waitress)', 'Housekeeping',
+    'Front Office / Receptionist', 'Kitchen / Pastry',
+    'Guest Relations', 'Spa & Wellness Therapist',
+    'Animation / Kids Club', 'Barista / Bartender'
+  )),
+  experience     text check (experience is null or char_length(experience) <= 2000),
+  status         text not null default 'Pendaftaran Baru' check (status in (
+    'Pendaftaran Baru', 'Terdaftar — Menunggu Seleksi', 'Dalam Seleksi',
+    'Lolos', 'Ditolak', 'Ditempatkan'
+  )),
   created_at     timestamptz not null default now()
 );
+
+-- Migrasi aman untuk project yang sudah pernah menjalankan schema lama.
+-- ID lama yang kosong akan diterbitkan ulang sebelum NOT NULL diterapkan.
+do $$
+declare
+  candidate_row record;
+  generated_id text;
+begin
+  for candidate_row in
+    select id, coalesce(created_at, now()) as created_at
+    from public.candidates
+    where candidate_id is null or candidate_id = ''
+  loop
+    loop
+      generated_id := 'TKI-' || to_char(candidate_row.created_at, 'YYYY') || '-' || lpad(nextval('public.candidate_id_seq')::text, 5, '0');
+      exit when not exists (select 1 from public.candidates where candidate_id = generated_id);
+    end loop;
+    update public.candidates set candidate_id = generated_id where id = candidate_row.id;
+  end loop;
+end $$;
+update public.candidates set full_name = '' where full_name is null;
+alter table public.candidates alter column candidate_id set not null;
+alter table public.candidates alter column full_name set default '';
+alter table public.candidates alter column full_name set not null;
+
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'candidates_full_name_length') then
+    alter table public.candidates add constraint candidates_full_name_length check (char_length(full_name) <= 160);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'candidates_phone_length') then
+    alter table public.candidates add constraint candidates_phone_length check (phone is null or char_length(phone) <= 32);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'candidates_experience_length') then
+    alter table public.candidates add constraint candidates_experience_length check (experience is null or char_length(experience) <= 2000);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'candidates_position_allowed') then
+    alter table public.candidates add constraint candidates_position_allowed check (position is null or position in (
+      'F&B Service (Waiter/Waitress)', 'Housekeeping', 'Front Office / Receptionist',
+      'Kitchen / Pastry', 'Guest Relations', 'Spa & Wellness Therapist',
+      'Animation / Kids Club', 'Barista / Bartender'
+    ));
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'candidates_status_allowed') then
+    alter table public.candidates add constraint candidates_status_allowed check (status in (
+      'Pendaftaran Baru', 'Terdaftar — Menunggu Seleksi', 'Dalam Seleksi',
+      'Lolos', 'Ditolak', 'Ditempatkan'
+    ));
+  end if;
+end $$;
 
 -- ------------------------------------------------------------
 -- 2. Sequence + function pembuat candidate_id (server-side,
 --    bukan random di client, agar anti-tabrakan & berurutan)
 -- ------------------------------------------------------------
-create sequence if not exists public.candidate_id_seq start 1;
-
 create or replace function public.generate_candidate_id()
 returns trigger
 language plpgsql
@@ -39,10 +96,8 @@ as $$
 declare
   seq text;
 begin
-  if new.candidate_id is null or new.candidate_id = '' then
-    select lpad(nextval('public.candidate_id_seq')::text, 5, '0') into seq;
-    new.candidate_id := 'TKI-' || to_char(now(), 'YYYY') || '-' || seq; -- TKI-2026-00001
-  end if;
+  select lpad(nextval('public.candidate_id_seq')::text, 5, '0') into seq;
+  new.candidate_id := 'TKI-' || to_char(now(), 'YYYY') || '-' || seq; -- TKI-2026-00001
   return new;
 end;
 $$;
@@ -52,25 +107,33 @@ create trigger on_candidate_created
   before insert on public.candidates
   for each row execute function public.generate_candidate_id();
 
+revoke all on function public.generate_candidate_id() from public, anon, authenticated;
+
 -- ------------------------------------------------------------
 -- 3. Row Level Security: setiap kandidat hanya boleh melihat
---    dan mengubah baris miliknya sendiri
+--    dan mengubah field profil miliknya sendiri.
 -- ------------------------------------------------------------
 alter table public.candidates enable row level security;
 
+-- Jangan berikan hak tulis umum lewat PostgREST. Baris dibuat oleh trigger
+-- auth di bawah; kandidat hanya boleh mengubah empat field profil.
+revoke all on table public.candidates from anon, authenticated;
+revoke all on sequence public.candidate_id_seq from anon, authenticated;
+grant select on table public.candidates to authenticated;
+grant update (full_name, phone, position, experience)
+  on table public.candidates to authenticated;
+
+drop policy if exists "Kandidat mengisi data sendiri" on public.candidates;
 drop policy if exists "Kandidat melihat data sendiri" on public.candidates;
 create policy "Kandidat melihat data sendiri"
   on public.candidates for select
+  to authenticated
   using (auth.uid() = id);
-
-drop policy if exists "Kandidat mengisi data sendiri" on public.candidates;
-create policy "Kandidat mengisi data sendiri"
-  on public.candidates for insert
-  with check (auth.uid() = id);
 
 drop policy if exists "Kandidat mengubah data sendiri" on public.candidates;
 create policy "Kandidat mengubah data sendiri"
   on public.candidates for update
+  to authenticated
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
@@ -91,16 +154,16 @@ begin
 end;
 $$;
 
+-- Fungsi trigger harus tetap dapat membuat baris walau INSERT publik dicabut.
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
 -- ------------------------------------------------------------
--- 5. (Opsional) View ringkasan untuk admin/agency
---    Hitungan kandidat per posisi
+-- 5. Jangan expose view statistik ke API publik.
+--    Statistik admin harus diambil dari dashboard/server menggunakan service role.
 -- ------------------------------------------------------------
-create or replace view public.candidate_stats as
-  select position, count(*) as total
-  from public.candidates
-  group by position;
+drop view if exists public.candidate_stats;

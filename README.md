@@ -108,3 +108,9 @@ ganti aset di folder tersebut dan perbarui referensinya di `src/data.js`.
 - Nama agency, statistik, dan kontak di halaman adalah konten contoh — sesuaikan dengan data asli.
 - Untuk produksi, tambahkan verifikasi domain pada Google OAuth consent screen dan
   lengkapi kebijakan privasi.
+- Jalankan ulang `supabase/schema.sql` setelah update. Schema ini membuat baris kandidat
+  hanya melalui trigger auth; kandidat hanya dapat mengubah nama, telepon, posisi, dan pengalaman.
+- Perubahan `status` harus dilakukan dari dashboard/admin server menggunakan service role,
+  bukan dari browser.
+- File `public/_headers` diterapkan oleh host/CDN yang mendukung format `_headers`.
+  GitHub Pages mengabaikannya, jadi pasang header yang sama di Cloudflare/CDN jika tetap memakai Pages.
