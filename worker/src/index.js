@@ -6,7 +6,7 @@ function response(body, status, origin, headers = {}) {
     status,
     headers: {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Turnstile-Token',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       'Vary': 'Origin',
       ...headers,
@@ -16,6 +16,12 @@ function response(body, status, origin, headers = {}) {
 
 function json(data, status, origin) {
   return response(JSON.stringify(data), status, origin, { 'Content-Type': 'application/json' })
+}
+
+function requestOrigin(request, env) {
+  const origin = request.headers.get('Origin')
+  const allowedOrigins = (env.ALLOWED_ORIGIN || '').split(',').map((value) => value.trim()).filter(Boolean)
+  return origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '*'
 }
 
 function authToken(request) {
@@ -136,7 +142,7 @@ async function deleteDocument(user, id, env, origin) {
 
 export default {
   async fetch(request, env) {
-    const origin = env.ALLOWED_ORIGIN || '*'
+    const origin = requestOrigin(request, env)
     if (request.method === 'OPTIONS') return response(null, 204, origin)
 
     const url = new URL(request.url)

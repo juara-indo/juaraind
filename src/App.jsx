@@ -13,6 +13,82 @@ const GoogleIcon = ({ size = 20 }) => (
   </svg>
 )
 
+const AvatarIcon = () => (
+  <svg className="avatar avatar-svg" viewBox="0 0 48 48" role="img" aria-label="Avatar peserta">
+    <circle cx="24" cy="24" r="23" fill="#f2ead3" stroke="#b3261e" strokeWidth="2" />
+    <circle cx="24" cy="18" r="7" fill="#b3261e" />
+    <path d="M11 39c1.7-7.2 6.1-10.8 13-10.8S35.3 31.8 37 39" fill="#b3261e" />
+  </svg>
+)
+
+function CustomSelect({ value, onChange, options, placeholder, required = false }) {
+  const [open, setOpen] = useState(false)
+  const selectRef = React.useRef(null)
+  const selected = options.find((option) => option.value === value)
+
+  React.useEffect(() => {
+    if (!open) return undefined
+    const closeWhenOutside = (event) => {
+      if (!selectRef.current?.contains(event.target)) setOpen(false)
+    }
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', closeWhenOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeWhenOutside)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [open])
+
+  const choose = (nextValue) => {
+    onChange({ target: { value: nextValue } })
+    setOpen(false)
+  }
+
+  return (
+    <div ref={selectRef} className={`custom-select ${open ? 'is-open' : ''}`}>
+      <button
+        className={`custom-select-trigger ${selected ? '' : 'is-placeholder'}`}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-required={required}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{selected?.label || placeholder}</span>
+        <span className="custom-select-arrow" aria-hidden="true">⌄</span>
+      </button>
+      {open && (
+        <div className="custom-select-menu" role="listbox">
+          <button type="button" role="option" aria-selected={!value} onClick={() => choose('')}>
+            {placeholder}
+          </button>
+          {options.map((option) => (
+            <button key={option.value} type="button" role="option" aria-selected={option.value === value} onClick={() => choose(option.value)}>
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const displayDate = (value) => {
+  if (!value) return ''
+  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/)
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : value
+}
+
+const databaseDate = (value) => {
+  const input = String(value || '')
+  const displayMatch = input.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (displayMatch) return `${displayMatch[3]}-${displayMatch[2]}-${displayMatch[1]}`
+  return /^\d{4}-\d{2}-\d{2}$/.test(input) ? input : ''
+}
+
 const maintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE === 'true'
 
 function MaintenancePage() {
@@ -106,6 +182,8 @@ function useCandidate(session) {
 
 const documentsApiUrl = import.meta.env.VITE_DOCUMENTS_API_URL
 const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+const maxDocumentSize = 5 * 1024 * 1024
+const allowedDocumentTypes = new Set(['application/pdf', 'image/jpeg', 'image/png'])
 
 function useDocuments(session) {
   const [documents, setDocuments] = useState([])
@@ -215,14 +293,14 @@ function Nav({ session, onLogin }) {
       <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
         <img className="brand-logo" src="/images/logojuara.svg" alt="Juara" />
       </a>
-      <ul className="nav-links">
+      <ul className={`nav-links ${session ? 'nav-links-hidden' : ''}`}>
         <li><a href="#hotel" onClick={(e) => { e.preventDefault(); go('hotel') }}>Hotel Mitra</a></li>
         <li><a href="#proses" onClick={(e) => { e.preventDefault(); go('proses') }}>Alur</a></li>
         <li><a href="#galeri" onClick={(e) => { e.preventDefault(); go('galeri') }}>Galeri</a></li>
         <li><a href="#daftar" onClick={(e) => { e.preventDefault(); go('daftar') }}>Pendaftaran</a></li>
       </ul>
       <button className="nav-cta" onClick={() => (session ? go('daftar') : onLogin())}>
-        {session ? 'Dashboard Saya' : (<><GoogleIcon size={16} /> Masuk</>)}
+        {session ? 'Akun Saya' : (<><GoogleIcon size={16} /> Masuk</>)}
       </button>
     </header>
   )
@@ -371,6 +449,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const { documents, loading: documentsLoading, error: documentsError, upload, download, remove } = useDocuments(session)
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState(null)
   const [turnstileToken, setTurnstileToken] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -381,7 +460,14 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
     if (cand) {
       setForm({
         full_name: cand.full_name || '',
+        birth_place: cand.birth_place || '',
+        birth_date: displayDate(cand.birth_date || ''),
+        gender: cand.gender || '',
         phone: cand.phone || '',
+        address: cand.address || '',
+        province: cand.province || '',
+        city: cand.city || '',
+        postal_code: cand.postal_code || '',
         position: cand.position || '',
         experience: cand.experience || '',
       })
@@ -395,10 +481,21 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
     setErr('')
     if (!form.full_name?.trim()) { setErr('Nama lengkap wajib diisi.'); return }
     if (!form.position) { setErr('Pilih posisi yang Anda incar.'); return }
+    if (form.birth_date && !databaseDate(form.birth_date)) {
+      setErr('Tanggal lahir harus menggunakan format dd/mm/yyyy.')
+      return
+    }
     setSaving(true)
     const { error } = await updateProfile({
       full_name: form.full_name.trim(),
+      birth_place: form.birth_place.trim(),
+      birth_date: databaseDate(form.birth_date) || null,
+      gender: form.gender || null,
       phone: form.phone.trim(),
+      address: form.address.trim(),
+      province: form.province.trim(),
+      city: form.city.trim(),
+      postal_code: form.postal_code.trim(),
       position: form.position,
       experience: form.experience.trim(),
     })
@@ -412,16 +509,33 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
     setCopied(true); setTimeout(() => setCopied(false), 1800)
   }
 
-  const handleUpload = async (event) => {
+  const handleDocumentSelect = (event) => {
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
+    setErr('')
+    if (!allowedDocumentTypes.has(file.type)) {
+      setSelectedDocument(null)
+      setErr('Format file harus PDF, JPG, atau PNG.')
+      return
+    }
+    if (file.size > maxDocumentSize) {
+      setSelectedDocument(null)
+      setErr('Ukuran file maksimal 5 MB.')
+      return
+    }
+    setSelectedDocument(file)
+  }
+
+  const handleUpload = async () => {
+    if (!selectedDocument) return
     setErr('')
     setDocumentBusy(true)
     try {
       if (!turnstileSiteKey) throw new Error('Verifikasi keamanan belum dikonfigurasi.')
       if (!turnstileToken) throw new Error('Selesaikan verifikasi keamanan terlebih dahulu.')
-      await upload(file, turnstileToken)
+      await upload(selectedDocument, turnstileToken)
+      setSelectedDocument(null)
       setTurnstileToken('')
     } catch (error) {
       setErr(error.message)
@@ -443,24 +557,27 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   }
 
   const meta = session?.user?.user_metadata || {}
-  const avatar = meta.avatar_url || meta.picture
+
+  if (sessLoading) return null
 
   return (
-    <section className="section auth-section" id="daftar">
-      <div className="auth-wrap">
-        <Reveal className="auth-pitch">
-          <div className="sec-kicker">Pendaftaran Kandidat</div>
-          <h2 className="sec-title">Satu akun Google, <em>satu ID unik</em> untuk Anda</h2>
-          <p className="sec-desc">
-            Setiap kandidat menerima <b>ID Kandidat permanen</b> setelah akun terhubung.
-            Sebutkan ID ini saat menghubungi kantor agency — seluruh berkas Anda bisa langsung dipanggil tanpa mencari ulang.
-          </p>
-          <ul style={{ listStyle: 'none', display: 'grid', gap: 12, fontSize: 14, color: 'var(--ink-soft)' }}>
-            <li>✦ Login aman via Google — tanpa mengisi password baru</li>
-            <li>✦ Data tersimpan terenkripsi di Supabase (hanya Anda yang bisa melihat)</li>
-            <li>✦ ID langsung diterbitkan otomatis saat akun dibuat</li>
-          </ul>
-        </Reveal>
+    <section className={`section auth-section ${session ? 'candidate-section' : ''}`} id="daftar">
+      <div className={`auth-wrap ${session ? 'candidate-mode' : ''}`}>
+        {!session && (
+          <Reveal className="auth-pitch">
+            <div className="sec-kicker">Pendaftaran Kandidat</div>
+            <h2 className="sec-title">Satu akun Google, <em>satu ID unik</em> untuk Anda</h2>
+            <p className="sec-desc">
+              Setiap kandidat menerima <b>ID Kandidat permanen</b> setelah akun terhubung.
+              Sebutkan ID ini saat menghubungi kantor agency — seluruh berkas Anda bisa langsung dipanggil tanpa mencari ulang.
+            </p>
+            <ul style={{ listStyle: 'none', display: 'grid', gap: 12, fontSize: 14, color: 'var(--ink-soft)' }}>
+              <li>✦ Login aman via Google — tanpa mengisi password baru</li>
+              <li>✦ Data tersimpan terenkripsi di Supabase (hanya Anda yang bisa melihat)</li>
+              <li>✦ ID langsung diterbitkan otomatis saat akun dibuat</li>
+            </ul>
+          </Reveal>
+        )}
 
         <Reveal className="auth-card" delay={120}>
           {!isConfigured && (
@@ -491,40 +608,130 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
             </>
           ) : (
             <>
-              <div className="user-line">
-                {avatar && <img className="avatar" src={avatar} alt="Foto profil" referrerPolicy="no-referrer" />}
-                <div className="user-meta">
-                  <b>{meta.full_name || meta.name || session.user.email}</b>
-                  <span>{session.user.email}</span>
-                </div>
-                <button className="signout" onClick={signOut}>Keluar</button>
-              </div>
-
               {cand?.candidate_id && (
                 <div className="id-card">
-                  <div className="id-label">ID Kandidat Anda</div>
-                  <div className="id-value">{cand.candidate_id}</div>
-                  <div className="id-hint">Simpan / tangkap layar ID ini — itu kunci pemanggilan data Anda di kantor agency.</div>
-                  <button className="copy-btn" onClick={copyId}>{copied ? '✓ Tersalin' : 'Salin ID'}</button>
+                  <header className="candidate-header">
+                    <div className="user-meta">
+                      <b>{meta.full_name || meta.name || session.user.email}</b>
+                      <span>{session.user.email}</span>
+                      <button className="signout" onClick={signOut}>Keluar</button>
+                    </div>
+                    <div className="avatar-column">
+                      <AvatarIcon />
+                    </div>
+                  </header>
+                  <div className="id-content">
+                    <div className="id-label">ID Kandidat Anda</div>
+                    <div className="id-value">{cand.candidate_id}</div>
+                    <div className="id-hint">Simpan / tangkap layar ID ini — itu kunci pemanggilan data Anda di kantor agency.</div>
+                    <div className="id-actions">
+                      <button className="copy-btn" onClick={copyId}>{copied ? '✓ Tersalin' : 'Salin ID'}</button>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              {cand?.status && <div style={{ marginBottom: 18 }}><span className="status-chip">{cand.status}</span></div>}
               {err && <div className="err-box">{err}</div>}
               {documentsError && !err && <div className="err-box">{documentsError}</div>}
               {saved && <div className="ok-box">✓ Data tersimpan. Tim rekrutmen kami akan menghubungi Anda melalui nomor telepon &amp; email terdaftar.</div>}
+
+              {form && (
+                <form className="form-grid" onSubmit={save}>
+                  <div className="form-heading full">
+                    <div className="field-label">Biodata</div>
+                    <p>Lengkapi data diri sesuai dokumen identitas Anda.</p>
+                  </div>
+                  <div className="field full">
+                    <label>Nama Lengkap (sesuai paspor)</label>
+                    <input className="title-case" value={form.full_name} onChange={set('full_name')} placeholder="cth. Rizky Pratama" maxLength={160} required />
+                  </div>
+                  <div className="field">
+                    <label>Tempat Lahir</label>
+                    <input className="title-case" value={form.birth_place} onChange={set('birth_place')} placeholder="cth. Bandung" maxLength={100} />
+                  </div>
+                  <div className="field">
+                    <label>Tanggal Lahir</label>
+                    <input type="date" value={databaseDate(form.birth_date)} onChange={set('birth_date')} lang="id-ID" />
+                  </div>
+                  <div className="field">
+                    <label>Jenis Kelamin</label>
+                    <CustomSelect
+                      value={form.gender}
+                      onChange={set('gender')}
+                      placeholder="— Pilih jenis kelamin —"
+                      options={[
+                        { value: 'Laki-laki', label: 'Laki-laki' },
+                        { value: 'Perempuan', label: 'Perempuan' },
+                      ]}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Nomor WhatsApp</label>
+                    <input value={form.phone || ''} onChange={set('phone')} placeholder="+62 8xx-xxxx-xxxx" maxLength={32} />
+                  </div>
+                  <div className="field full">
+                    <label>Alamat Lengkap</label>
+                    <textarea className="title-case" value={form.address} onChange={set('address')} placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan atau desa" maxLength={500} />
+                  </div>
+                  <div className="field">
+                    <label>Provinsi</label>
+                    <input className="title-case" value={form.province} onChange={set('province')} placeholder="cth. Jawa Barat" maxLength={100} />
+                  </div>
+                  <div className="field">
+                    <label>Kota / Kabupaten</label>
+                    <input className="title-case" value={form.city} onChange={set('city')} placeholder="cth. Kota Bandung" maxLength={100} />
+                  </div>
+                  <div className="field">
+                    <label>Kode Pos</label>
+                    <input value={form.postal_code} onChange={set('postal_code')} placeholder="40123" inputMode="numeric" maxLength={10} />
+                  </div>
+                  <div className="field">
+                    <label>Posisi yang Diincar</label>
+                    <CustomSelect
+                      value={form.position || ''}
+                      onChange={set('position')}
+                      placeholder="— Pilih posisi —"
+                      required
+                      options={POSITIONS.map((p) => ({ value: p, label: p }))}
+                    />
+                  </div>
+                  <div className="field full">
+                    <label>Pengalaman Kerja Singkat</label>
+                    <textarea
+                      value={form.experience || ''}
+                      onChange={set('experience')}
+                      placeholder="cth. 3 tahun waiter di hotel bintang 4 di Bali; dasar bahasa Inggris aktif…"
+                      maxLength={2000}
+                    />
+                  </div>
+                  <div className="full">
+                    <button className="submit-btn" type="submit" disabled={saving}>
+                      {saving ? 'Menyimpan…' : 'Simpan & Kirim Pendaftaran'}
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="documents-card">
                 <div className="documents-head">
                   <div>
                     <div className="field-label">Berkas Kandidat</div>
-                    <p>Upload CV, paspor, sertifikat, atau dokumen pendukung lainnya.</p>
+                    <p>CV, paspor, sertifikat, atau dokumen pendukung lainnya. Maksimal 5 MB.</p>
                   </div>
                   <label className={`upload-btn ${documentBusy ? 'disabled' : ''}`}>
-                    {documentBusy ? 'Memproses…' : 'Tambah Dokumen'}
-                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleUpload} disabled={documentBusy || !documentsApiUrl} />
+                    Pilih File
+                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleDocumentSelect} disabled={documentBusy || !documentsApiUrl} />
                   </label>
                 </div>
+                {selectedDocument && (
+                  <div className="selected-document">
+                    <div>
+                      <b>{selectedDocument.name}</b>
+                      <span>{(selectedDocument.size / 1024 / 1024).toFixed(2)} MB · Siap diupload</span>
+                    </div>
+                    <button type="button" onClick={() => setSelectedDocument(null)} disabled={documentBusy}>Ganti</button>
+                  </div>
+                )}
                 {turnstileSiteKey && (
                   <div className="turnstile-box">
                     <Turnstile
@@ -535,6 +742,11 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       onError={() => setTurnstileToken('')}
                     />
                   </div>
+                )}
+                {selectedDocument && (
+                  <button className="document-submit" type="button" onClick={handleUpload} disabled={documentBusy || !turnstileToken || !documentsApiUrl}>
+                    {documentBusy ? 'Mengupload…' : !turnstileToken ? 'Selesaikan verifikasi keamanan' : 'Upload Dokumen'}
+                  </button>
                 )}
                 {!documentsApiUrl && <p className="document-note">Upload dokumen belum aktif karena API Cloudflare belum dikonfigurasi.</p>}
                 {!turnstileSiteKey && <p className="document-note">Upload dokumen belum aktif karena Turnstile belum dikonfigurasi.</p>}
@@ -557,40 +769,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                   </ul>
                 )}
               </div>
-
-              {form && (
-                <form className="form-grid" onSubmit={save}>
-                  <div className="field full">
-                    <label>Nama Lengkap (sesuai paspor)</label>
-                    <input value={form.full_name} onChange={set('full_name')} placeholder="cth. Rizky Pratama" maxLength={160} required />
-                  </div>
-                  <div className="field">
-                    <label>Nomor WhatsApp</label>
-                    <input value={form.phone || ''} onChange={set('phone')} placeholder="+62 8xx-xxxx-xxxx" maxLength={32} />
-                  </div>
-                  <div className="field">
-                    <label>Posisi yang Diincar</label>
-                    <select value={form.position || ''} onChange={set('position')} required>
-                      <option value="">— Pilih posisi —</option>
-                      {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-                  <div className="field full">
-                    <label>Pengalaman Kerja Singkat</label>
-                    <textarea
-                      value={form.experience || ''}
-                      onChange={set('experience')}
-                      placeholder="cth. 3 tahun waiter di hotel bintang 4 di Bali; dasar bahasa Inggris aktif…"
-                      maxLength={2000}
-                    />
-                  </div>
-                  <div className="full">
-                    <button className="submit-btn" type="submit" disabled={saving}>
-                      {saving ? 'Menyimpan…' : 'Simpan & Kirim Pendaftaran'}
-                    </button>
-                  </div>
-                </form>
-              )}
             </>
           )}
         </Reveal>
@@ -699,19 +877,23 @@ export default function App() {
   return (
     <>
       <ScrollIndicator />
-      <Nav session={session} onLogin={signInWithGoogle} />
-      <Hero session={session} onLogin={signInWithGoogle} />
-      <Marquee />
-      <Hotels />
-      <Process />
-      <Gallery />
+      {!loading && !session && <Nav session={session} onLogin={signInWithGoogle} />}
+      {!loading && !session && (
+        <>
+          <Hero session={session} onLogin={signInWithGoogle} />
+          <Marquee />
+          <Hotels />
+          <Process />
+          <Gallery />
+        </>
+      )}
       <AuthSection
         session={session}
         loading={loading}
         signInWithGoogle={signInWithGoogle}
         signOut={signOut}
       />
-      <Footer />
+      {!loading && !session && <Footer />}
     </>
   )
 }
