@@ -18,7 +18,7 @@ function MaintenancePage() {
   return (
     <main className="maintenance-page">
       <div className="maintenance-card">
-        <img className="maintenance-logo" src="/images/logojuara.svg" alt="Juara" />
+        <img className="maintenance-logo" src="/images/logojuara-maintenance.svg" alt="Juara" />
         <p className="maintenance-kicker">Juara · Indonesia → Turki</p>
         <h1>Kami sedang menyiapkan sesuatu yang lebih baik.</h1>
         <p className="maintenance-copy">
