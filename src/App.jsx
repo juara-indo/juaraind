@@ -616,6 +616,12 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   }, [cand])
 
   const set = (k) => (e) => { setForm((f) => ({ ...f, [k]: e.target.value })); setSaved(false) }
+  const keepAutocompleteOpen = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      event.currentTarget.showPicker?.()
+    }
+  }
 
   const save = async (e) => {
     e.preventDefault()
@@ -932,15 +938,15 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                   </div>
                   <div className="field">
                     <label htmlFor="province">Provinsi</label>
-                    <input id="province" list="province-options" tabIndex="7" className="title-case" value={form.province} onChange={set('province')} onBlur={() => setForm((current) => ({ ...current, province: toTitleCase(current.province) }))} placeholder="Ketik untuk mencari provinsi" maxLength={100} readOnly={!isEditing} />
+                    <input id="province" list="province-options" tabIndex="7" className="title-case" value={form.province} onChange={set('province')} onKeyDown={keepAutocompleteOpen} onBlur={() => setForm((current) => ({ ...current, province: toTitleCase(current.province) }))} placeholder="Ketik untuk mencari provinsi" maxLength={100} readOnly={!isEditing} />
                   </div>
                   <div className="field">
                     <label htmlFor="city">Kota / kabupaten</label>
-                    <input id="city" list="city-options" tabIndex="8" className="title-case" value={form.city} onChange={set('city')} onBlur={() => setForm((current) => ({ ...current, city: toTitleCase(current.city) }))} placeholder="Pilih provinsi terlebih dahulu" maxLength={100} readOnly={!isEditing} />
+                    <input id="city" list="city-options" tabIndex="8" className="title-case" value={form.city} onChange={set('city')} onKeyDown={keepAutocompleteOpen} onBlur={() => setForm((current) => ({ ...current, city: toTitleCase(current.city) }))} placeholder="Pilih provinsi terlebih dahulu" maxLength={100} readOnly={!isEditing} />
                   </div>
                   <div className="field">
                     <label htmlFor="postal-code">Kode pos</label>
-                    <input id="postal-code" list="postal-options" tabIndex="9" value={form.postal_code} onChange={set('postal_code')} placeholder="Ketik untuk mencari kode pos" inputMode="numeric" maxLength={10} readOnly={!isEditing} />
+                    <input id="postal-code" list="postal-options" tabIndex="9" value={form.postal_code} onChange={set('postal_code')} onKeyDown={keepAutocompleteOpen} placeholder="Ketik untuk mencari kode pos" inputMode="numeric" maxLength={10} readOnly={!isEditing} />
                   </div>
                   <div className="field full">
                     <label htmlFor="experience">Pengalaman kerja singkat</label>
