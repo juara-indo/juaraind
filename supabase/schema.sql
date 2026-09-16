@@ -17,7 +17,7 @@ create sequence if not exists public.candidate_id_seq start 1;
 -- ------------------------------------------------------------
 create table if not exists public.candidates (
   id             uuid primary key references auth.users(id) on delete cascade,
-  candidate_id   text unique not null,              -- contoh: TKI-2026-00001
+  candidate_id   text unique not null,              -- contoh: IND-2026-00001
   full_name      text not null default '' check (char_length(full_name) <= 160),
   birth_place    text check (birth_place is null or char_length(birth_place) <= 100),
   birth_date     date,
@@ -65,7 +65,7 @@ begin
     where candidate_id is null or candidate_id = ''
   loop
     loop
-      generated_id := 'TKI-' || to_char(candidate_row.created_at, 'YYYY') || '-' || lpad(nextval('public.candidate_id_seq')::text, 5, '0');
+      generated_id := 'IND-' || to_char(candidate_row.created_at, 'YYYY') || '-' || lpad(nextval('public.candidate_id_seq')::text, 5, '0');
       exit when not exists (select 1 from public.candidates where candidate_id = generated_id);
     end loop;
     update public.candidates set candidate_id = generated_id where id = candidate_row.id;
@@ -115,7 +115,7 @@ declare
   seq text;
 begin
   select lpad(nextval('public.candidate_id_seq')::text, 5, '0') into seq;
-  new.candidate_id := 'TKI-' || to_char(now(), 'YYYY') || '-' || seq; -- TKI-2026-00001
+  new.candidate_id := 'IND-' || to_char(now(), 'YYYY') || '-' || seq; -- IND-2026-00001
   return new;
 end;
 $$;
