@@ -6,6 +6,10 @@ const UPLOAD_RATE_WINDOW_MS = 10 * 60 * 1000
 const UPLOAD_RATE_LIMIT_PER_USER = 10
 const UPLOAD_RATE_LIMIT_PER_IP = 30
 
+function safeObjectSegment(value, fallback = 'candidate') {
+  return String(value || fallback).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 120) || fallback
+}
+
 function response(body, status, origin, headers = {}) {
   return new Response(body, {
     status,
@@ -175,7 +179,8 @@ async function uploadDocuments(request, user, token, env, origin) {
     for (const [index, file] of files.entries()) {
       const id = crypto.randomUUID()
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120) || 'document'
-      const objectKey = `documents/${user.id}/${id}-${safeName}`
+      const candidateFolder = safeObjectSegment(candidate.candidate_id)
+      const objectKey = `documents/${candidateFolder}/${id}-${safeName}`
       await env.DOCUMENTS.put(objectKey, file.stream(), {
         httpMetadata: { contentType: file.type },
       })
