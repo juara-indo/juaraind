@@ -38,6 +38,9 @@ th, td { padding: 14px 12px; border-bottom: 1px solid #e1d7c4; text-align: left;
 th { color: #6d6258; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 td:first-child { width: 64px; color: #6d6258; }
 td:last-child { width: 190px; }
+.candidate-cell { display: grid; gap: 3px; }
+.candidate-name { color: #b07b11; font-size: 13px; font-weight: 700; }
+.candidate-id { color: #2c211d; font-size: 16px; }
 .modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(44,33,29,.48); z-index: 10; }
 .modal { width: min(680px, 100%); max-height: min(720px, 90vh); overflow: auto; padding: 24px; background: #fffaf0; border-radius: 18px; box-shadow: 0 20px 60px rgba(44,33,29,.25); }
 .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
