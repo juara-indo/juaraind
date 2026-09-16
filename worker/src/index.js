@@ -92,6 +92,14 @@ async function listAdminDocuments(candidateId, env, origin) {
   return json({ documents: results }, 200, origin)
 }
 
+async function listAllAdminDocuments(env, origin) {
+  const { results } = await env.DB.prepare(
+    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
+     FROM documents ORDER BY candidate_id, document_type, created_at DESC`,
+  ).all()
+  return json({ documents: results }, 200, origin)
+}
+
 async function consumeRateLimit(key, limit, env) {
   const now = Date.now()
   const windowStart = now - UPLOAD_RATE_WINDOW_MS
@@ -335,6 +343,10 @@ export default {
       if (url.pathname === '/admin/candidates' && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return listAdminCandidates(request, env, origin)
+      }
+      if (url.pathname === '/admin/documents' && request.method === 'GET') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return listAllAdminDocuments(env, origin)
       }
       const adminDocumentMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/documents$/)
       if (adminDocumentMatch && request.method === 'GET') {
