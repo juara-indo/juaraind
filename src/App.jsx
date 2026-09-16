@@ -351,10 +351,12 @@ function useDocuments(session) {
     refresh().catch(() => undefined)
   }, [session])
 
-  const upload = async (file, turnstileToken, documentType) => {
+  const upload = async (files, turnstileToken, documentTypes) => {
     const body = new FormData()
-    body.append('file', file)
-    body.append('document_type', documentType)
+    files.forEach((file, index) => {
+      body.append('files', file)
+      body.append('document_types', documentTypes[index])
+    })
     await request('/documents', {
       method: 'POST',
       body,
@@ -674,28 +676,27 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
     }))
   }
 
-  const handleUpload = async (documentType) => {
-    const selected = selectedDocuments[documentType]
-    const file = documentType === 'pendukung' ? selected?.[0] : selected
-    if (!file) return
+  const handleTurnstileSuccess = async (token) => {
+    const files = []
+    const documentTypes = []
+    Object.entries(selectedDocuments).forEach(([documentType, selected]) => {
+      const selectedFiles = documentType === 'pendukung' ? selected : [selected]
+      selectedFiles.filter(Boolean).forEach((file) => {
+        files.push(file)
+        documentTypes.push(documentType)
+      })
+    })
+    setTurnstileToken(token)
+    if (!files.length) return
     setErr('')
     setDocumentBusy(true)
     try {
-      if (!turnstileSiteKey) throw new Error('Verifikasi keamanan belum dikonfigurasi.')
-      if (!turnstileToken) throw new Error('Selesaikan verifikasi keamanan terlebih dahulu.')
-      await upload(file, turnstileToken, documentType)
-      setSelectedDocuments((current) => {
-        const next = { ...current }
-        if (documentType === 'pendukung' && next[documentType]?.length > 1) {
-          next[documentType] = next[documentType].slice(1)
-        } else {
-          delete next[documentType]
-        }
-        return next
-      })
+      await upload(files, token, documentTypes)
+      setSelectedDocuments({})
       setTurnstileToken('')
     } catch (error) {
       setErr(error.message)
+      setTurnstileToken('')
     } finally {
       setDocumentBusy(false)
     }
@@ -999,9 +1000,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                           {documentType.id === 'pendukung' && files.length ? 'Tambah file' : file ? 'Ganti file' : 'Pilih file'}
                           <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
                         </label>
-                        {file && <button className="slot-upload-btn" type="button" onClick={() => handleUpload(documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id] || !turnstileToken || !documentsApiUrl}>
-                          {documentBusy ? 'Mengupload…' : 'Upload'}
-                        </button>}
                         {(documentType.id === 'paspor' || documentType.id === 'visa') && (
                           <label className="agency-document-option">
                             <input type="checkbox" checked={agencyDocuments[documentType.id]} onChange={toggleAgencyDocument(documentType.id)} disabled={documentBusy || applying || applied} />
@@ -1032,12 +1030,13 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     ))}
                   </ul>
                 )}
+                <p className="document-note">Pilih semua file terlebih dahulu, lalu centang verifikasi Cloudflare untuk mengunggahnya sekaligus.</p>
                 {turnstileSiteKey && (
                   <div className="turnstile-box">
                     <Turnstile
                       siteKey={turnstileSiteKey}
                       options={{ action: 'document-upload', theme: 'light' }}
-                      onSuccess={setTurnstileToken}
+                      onSuccess={handleTurnstileSuccess}
                       onExpire={() => setTurnstileToken('')}
                       onError={() => setTurnstileToken('')}
                     />

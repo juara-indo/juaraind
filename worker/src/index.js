@@ -147,7 +147,7 @@ async function submitApplication(request, user, token, env, origin) {
   return json({ applied: true }, 200, origin)
 }
 
-async function uploadDocument(request, user, token, env, origin) {
+async function uploadDocuments(request, user, token, env, origin) {
   const turnstileToken = request.headers.get('X-Turnstile-Token')
   const turnstile = await verifyTurnstile(turnstileToken, request, env)
   if (!turnstile.success) return json({ error: 'Verifikasi keamanan gagal. Silakan coba lagi.' }, 403, origin)
@@ -156,33 +156,52 @@ async function uploadDocument(request, user, token, env, origin) {
   if (!candidate) return json({ error: 'Profil kandidat belum tersedia.' }, 404, origin)
 
   const form = await request.formData()
-  const file = form.get('file')
-  const documentType = String(form.get('document_type') || '')
-  if (!(file instanceof File)) return json({ error: 'File dokumen wajib dipilih.' }, 400, origin)
-  if (!ALLOWED_DOCUMENT_TYPES.has(documentType)) return json({ error: 'Jenis dokumen tidak valid.' }, 400, origin)
-  if (!ALLOWED_TYPES.has(file.type)) return json({ error: 'Format harus PDF, JPG, atau PNG.' }, 415, origin)
-  if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
+  const files = form.getAll('files')
+  const documentTypes = form.getAll('document_types').map(String)
+  if (!files.length || files.some((file) => !(file instanceof File))) {
+    return json({ error: 'File dokumen wajib dipilih.' }, 400, origin)
+  }
+  if (files.length !== documentTypes.length || files.length > 10) {
+    return json({ error: 'Data dokumen tidak valid.' }, 400, origin)
+  }
+  for (const [index, file] of files.entries()) {
+    if (!ALLOWED_DOCUMENT_TYPES.has(documentTypes[index])) return json({ error: 'Jenis dokumen tidak valid.' }, 400, origin)
+    if (!ALLOWED_TYPES.has(file.type)) return json({ error: 'Format harus PDF, JPG, atau PNG.' }, 415, origin)
+    if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
+  }
 
-  const id = crypto.randomUUID()
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120) || 'document'
-  const objectKey = `documents/${user.id}/${id}-${safeName}`
-  await env.DOCUMENTS.put(objectKey, file.stream(), {
-    httpMetadata: { contentType: file.type },
-  })
-
+  const uploaded = []
   try {
-    await env.DB.prepare(
-      `INSERT INTO documents
-       (id, user_id, candidate_id, document_type, object_key, file_name, content_type, file_size)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(id, user.id, candidate.candidate_id, documentType, objectKey, file.name, file.type, file.size).run()
+    for (const [index, file] of files.entries()) {
+      const id = crypto.randomUUID()
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120) || 'document'
+      const objectKey = `documents/${user.id}/${id}-${safeName}`
+      await env.DOCUMENTS.put(objectKey, file.stream(), {
+        httpMetadata: { contentType: file.type },
+      })
+      uploaded.push({ id, objectKey, file, documentType: documentTypes[index] })
+    }
+    for (const item of uploaded) {
+      await env.DB.prepare(
+        `INSERT INTO documents
+         (id, user_id, candidate_id, document_type, object_key, file_name, content_type, file_size)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(item.id, user.id, candidate.candidate_id, item.documentType, item.objectKey, item.file.name, item.file.type, item.file.size).run()
+    }
   } catch (error) {
-    await env.DOCUMENTS.delete(objectKey)
+    await Promise.all(uploaded.map((item) => env.DOCUMENTS.delete(item.objectKey)))
     throw error
   }
 
   return json({
-    document: { id, candidate_id: candidate.candidate_id, document_type: documentType, file_name: file.name, content_type: file.type, file_size: file.size },
+    documents: uploaded.map((item) => ({
+      id: item.id,
+      candidate_id: candidate.candidate_id,
+      document_type: item.documentType,
+      file_name: item.file.name,
+      content_type: item.file.type,
+      file_size: item.file.size,
+    })),
   }, 201, origin)
 }
 
@@ -227,7 +246,7 @@ export default {
         const rateLimitResponse = await enforceUploadRateLimit(request, user, env, origin)
         if (rateLimitResponse) return rateLimitResponse
         const token = authToken(request)
-        return uploadDocument(request, user, token, env, origin)
+        return uploadDocuments(request, user, token, env, origin)
       }
       if (url.pathname === '/applications' && request.method === 'POST') {
         const token = authToken(request)
