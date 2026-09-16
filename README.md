@@ -1,6 +1,6 @@
-# PT. JUAARA 🇮🇩 → 🇹🇷
+# PT. JUARA 🇮🇩 → 🇹🇷
 
-Website agency penempatan kettenagakerjaan **Indonesia → Turki** (hotel-hotel bintang lima).
+Website agency penempatan ketenagakerjaan **Indonesia → Turki** (hotel-hotel bintang lima).
 Dibangun dengan **React + Vite**, database **Supabase**, login **Google**, dan deploy **GitHub Pages via GitHub Actions**.
 
 Setiap kandidat yang mendaftar otomatis mendapat **ID unik permanen**
@@ -81,7 +81,7 @@ a. Buat repo baru di GitHub, lalu push proyek ini:
 ```bash
 git init
 git add .
-git commit -m "PT. JUAARA — initial release"
+git commit -m "PT. JUARA — initial release"
 git branch -M main
 git remote add origin https://github.com/<username>/<nama-repo>.git
 git push -u origin main
@@ -144,7 +144,10 @@ disimpan privat di Cloudflare R2 dan metadata file disimpan di Cloudflare D1.
 
 Worker memvalidasi session Supabase sebelum setiap operasi. File hanya dapat
 diakses oleh kandidat pemiliknya, dibatasi ke PDF/JPG/PNG dengan ukuran maksimal
-5 MB, dan tidak menggunakan URL R2 publik.
+5 MB, dan tidak menggunakan URL R2 publik. Percobaan upload juga dibatasi
+maksimal 10 kali per akun atau 30 kali per IP dalam 10 menit. Migrasi D1 pada
+langkah 4 wajib dijalankan agar tabel rate limit, jenis dokumen, dan pengajuan
+Apply tersedia.
 
 ---
 

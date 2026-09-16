@@ -1,5 +1,5 @@
 -- ============================================================
--- PT. JUAARA — Skema Supabase
+-- PT. JUARA — Skema Supabase
 -- 1) Buat project di https://supabase.com/dashboard
 -- 2) SQL Editor → paste seluruh file ini → Run
 -- 3) Authentication → Providers → aktifkan "Google",
@@ -19,7 +19,14 @@ create table if not exists public.candidates (
   id             uuid primary key references auth.users(id) on delete cascade,
   candidate_id   text unique not null,              -- contoh: TKI-2026-00001
   full_name      text not null default '' check (char_length(full_name) <= 160),
+  birth_place    text check (birth_place is null or char_length(birth_place) <= 100),
+  birth_date     date,
+  gender         text check (gender is null or gender in ('Laki-laki', 'Perempuan')),
   phone          text check (phone is null or char_length(phone) <= 32),
+  address        text check (address is null or char_length(address) <= 500),
+  province       text check (province is null or char_length(province) <= 100),
+  city           text check (city is null or char_length(city) <= 100),
+  postal_code    text check (postal_code is null or char_length(postal_code) <= 10),
   position       text check (position is null or position in (
     'F&B Service (Waiter/Waitress)', 'Housekeeping',
     'Front Office / Receptionist', 'Kitchen / Pastry',
@@ -33,6 +40,17 @@ create table if not exists public.candidates (
   )),
   created_at     timestamptz not null default now()
 );
+
+-- Tambahkan field biodata untuk project yang sudah memiliki tabel candidates.
+-- IF NOT EXISTS membuat blok ini aman dijalankan ulang.
+alter table public.candidates
+  add column if not exists birth_place text check (birth_place is null or char_length(birth_place) <= 100),
+  add column if not exists birth_date date,
+  add column if not exists gender text check (gender is null or gender in ('Laki-laki', 'Perempuan')),
+  add column if not exists address text check (address is null or char_length(address) <= 500),
+  add column if not exists province text check (province is null or char_length(province) <= 100),
+  add column if not exists city text check (city is null or char_length(city) <= 100),
+  add column if not exists postal_code text check (postal_code is null or char_length(postal_code) <= 10);
 
 -- Migrasi aman untuk project yang sudah pernah menjalankan schema lama.
 -- ID lama yang kosong akan diterbitkan ulang sebelum NOT NULL diterapkan.
@@ -120,7 +138,10 @@ alter table public.candidates enable row level security;
 revoke all on table public.candidates from anon, authenticated;
 revoke all on sequence public.candidate_id_seq from anon, authenticated;
 grant select on table public.candidates to authenticated;
-grant update (full_name, phone, position, experience)
+grant update (
+  full_name, birth_place, birth_date, gender, phone, address,
+  province, city, postal_code, position, experience
+)
   on table public.candidates to authenticated;
 
 drop policy if exists "Kandidat mengisi data sendiri" on public.candidates;
