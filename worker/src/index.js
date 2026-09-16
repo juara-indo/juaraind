@@ -174,7 +174,15 @@ async function uploadDocuments(request, user, token, env, origin) {
     if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
   }
 
+  const replaceTypes = [...new Set(documentTypes.filter((type) => type !== 'pendukung'))]
+  const previousDocuments = replaceTypes.length
+    ? (await env.DB.prepare(
+      `SELECT id, object_key FROM documents
+       WHERE user_id = ? AND document_type IN (${replaceTypes.map(() => '?').join(',')})`,
+    ).bind(user.id, ...replaceTypes).all()).results
+    : []
   const uploaded = []
+  const insertedIds = []
   try {
     for (const [index, file] of files.entries()) {
       const id = crypto.randomUUID()
@@ -197,9 +205,17 @@ async function uploadDocuments(request, user, token, env, origin) {
          (id, user_id, candidate_id, document_type, object_key, file_name, content_type, file_size)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(item.id, user.id, candidate.candidate_id, item.documentType, item.objectKey, item.file.name, item.file.type, item.file.size).run()
+      insertedIds.push(item.id)
+    }
+    for (const previous of previousDocuments) {
+      await env.DOCUMENTS.delete(previous.object_key)
+      await env.DB.prepare('DELETE FROM documents WHERE id = ? AND user_id = ?').bind(previous.id, user.id).run()
     }
   } catch (error) {
-    await Promise.all(uploaded.map((item) => env.DOCUMENTS.delete(item.objectKey)))
+    await Promise.all([
+      ...uploaded.map((item) => env.DOCUMENTS.delete(item.objectKey)),
+      ...insertedIds.map((id) => env.DB.prepare('DELETE FROM documents WHERE id = ? AND user_id = ?').bind(id, user.id).run()),
+    ])
     throw error
   }
 
