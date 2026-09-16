@@ -50,6 +50,33 @@ anatolia-karier/
 
 ## 🚀 Panduan Setup (urut dari atas, jangan ada yang dilewati)
 
+### Dashboard admin dokumen
+
+Aplikasi admin terpisah berada di folder `admin/`. Dashboard ini memakai login Google,
+tetapi akses API tetap diperiksa di Worker berdasarkan allowlist email admin.
+
+Konfigurasi yang diperlukan:
+
+1. Build aplikasi admin dengan `npm run build --prefix admin`.
+2. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, dan `VITE_DOCUMENTS_API_URL`
+   pada environment build admin.
+3. Atur secret Worker tanpa memasukkannya ke repository:
+
+   ```bash
+   cd worker
+   npx wrangler secret put ADMIN_EMAILS
+   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+   ```
+
+   `ADMIN_EMAILS` berisi satu atau beberapa email dipisahkan koma. `SUPABASE_SERVICE_ROLE_KEY`
+   hanya digunakan Worker untuk membaca daftar kandidat melalui Supabase dan tidak boleh
+   diletakkan di frontend.
+4. Tambahkan URL deployment admin ke `ALLOWED_ORIGIN` pada Worker dan URL callback Google
+   di Supabase Authentication.
+
+Dashboard menyediakan pencarian kandidat, jumlah dokumen, daftar dokumen, dan download
+melalui endpoint Worker yang hanya dapat dipanggil oleh email admin.
+
 ### 1) Supabase — database + login Google
 1. Buat project baru di [supabase.com/dashboard](https://supabase.com/dashboard).
 2. Buka **SQL Editor → New query**, paste seluruh isi `supabase/schema.sql`, lalu **Run**.

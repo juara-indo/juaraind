@@ -38,6 +38,60 @@ function authToken(request) {
   return value.startsWith('Bearer ') ? value.slice(7) : null
 }
 
+function adminEmails(env) {
+  return new Set((env.ADMIN_EMAILS || '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean))
+}
+
+async function authenticateAdmin(request, env) {
+  const user = await authenticate(request, env)
+  if (!user || !adminEmails(env).has(String(user.email || '').toLowerCase())) return null
+  return user
+}
+
+function supabaseAdminHeaders(env) {
+  if (!env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('SUPABASE_SERVICE_ROLE_KEY belum dikonfigurasi.')
+  return {
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+  }
+}
+
+async function listAdminCandidates(request, env, origin) {
+  const url = new URL(request.url)
+  const search = (url.searchParams.get('q') || '').replace(/[^a-zA-Z0-9 _-]/g, '').trim().slice(0, 80)
+  const params = new URLSearchParams({
+    select: 'id,candidate_id,full_name,phone,city,status,created_at',
+    order: 'created_at.desc',
+    limit: '100',
+  })
+  if (search) params.set('or', `(candidate_id.ilike.*${search}*,full_name.ilike.*${search}*)`)
+  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?${params}`, {
+    headers: supabaseAdminHeaders(env),
+  })
+  if (!candidateResponse.ok) throw new Error('Gagal mengambil daftar kandidat.')
+  const candidates = await candidateResponse.json()
+  const { results } = await env.DB.prepare(
+    `SELECT candidate_id, COUNT(*) AS document_count, MAX(created_at) AS latest_upload
+     FROM documents GROUP BY candidate_id ORDER BY latest_upload DESC`,
+  ).all()
+  const documentsByCandidate = new Map(results.map((item) => [item.candidate_id, item]))
+  return json({
+    candidates: candidates.map((candidate) => ({
+      ...candidate,
+      document_count: Number(documentsByCandidate.get(candidate.candidate_id)?.document_count || 0),
+      latest_upload: documentsByCandidate.get(candidate.candidate_id)?.latest_upload || null,
+    })),
+  }, 200, origin)
+}
+
+async function listAdminDocuments(candidateId, env, origin) {
+  const { results } = await env.DB.prepare(
+    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
+     FROM documents WHERE candidate_id = ? ORDER BY document_type, created_at DESC`,
+  ).bind(candidateId).all()
+  return json({ documents: results }, 200, origin)
+}
+
 async function consumeRateLimit(key, limit, env) {
   const now = Date.now()
   const windowStart = now - UPLOAD_RATE_WINDOW_MS
@@ -255,6 +309,19 @@ async function deleteDocument(user, id, env, origin) {
   return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } })
 }
 
+async function downloadAdminDocument(id, env, origin) {
+  const document = await env.DB.prepare(
+    'SELECT object_key, file_name, content_type FROM documents WHERE id = ?',
+  ).bind(id).first()
+  if (!document) return json({ error: 'Dokumen tidak ditemukan.' }, 404, origin)
+  const object = await env.DOCUMENTS.get(document.object_key)
+  if (!object) return json({ error: 'File tidak tersedia.' }, 404, origin)
+  return response(object.body, 200, origin, {
+    'Content-Type': document.content_type,
+    'Content-Disposition': `attachment; filename="${document.file_name.replace(/["\r\n]/g, '_')}"`,
+  })
+}
+
 export default {
   async fetch(request, env) {
     const origin = requestOrigin(request, env)
@@ -265,6 +332,20 @@ export default {
     if (!user) return json({ error: 'Sesi login tidak valid.' }, 401, origin)
 
     try {
+      if (url.pathname === '/admin/candidates' && request.method === 'GET') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return listAdminCandidates(request, env, origin)
+      }
+      const adminDocumentMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/documents$/)
+      if (adminDocumentMatch && request.method === 'GET') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return listAdminDocuments(decodeURIComponent(adminDocumentMatch[1]), env, origin)
+      }
+      const adminDownloadMatch = url.pathname.match(/^\/admin\/documents\/([^/]+)$/)
+      if (adminDownloadMatch && request.method === 'GET') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return downloadAdminDocument(decodeURIComponent(adminDownloadMatch[1]), env, origin)
+      }
       if (url.pathname === '/documents' && request.method === 'GET') {
         return listDocuments(user.id, env, origin)
       }

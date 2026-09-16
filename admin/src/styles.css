@@ -1,0 +1,32 @@
+:root { color: #2c211d; background: #f2ead3; font-family: Inter, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+main { max-width: 1180px; margin: 0 auto; padding: 32px 24px; }
+header, .toolbar, .layout, .doc { display: flex; gap: 16px; }
+header { align-items: center; justify-content: space-between; margin-bottom: 28px; }
+h1, h2, p { margin: 0; }
+h1 { font-family: Georgia, serif; font-size: 38px; margin-top: 6px; }
+h2 { font-size: 18px; margin-bottom: 16px; }
+.eyebrow { color: #b3261e; font-size: 11px; font-weight: 700; letter-spacing: .16em; }
+button { border: 0; border-radius: 999px; padding: 11px 18px; cursor: pointer; background: #b3261e; color: #fff; }
+button:hover { background: #8d1d18; }
+input { flex: 1; min-width: 0; border: 1px solid #d6c9ae; border-radius: 999px; padding: 12px 16px; background: #fffaf0; }
+.toolbar { margin-bottom: 18px; }
+.layout { align-items: flex-start; }
+.panel { flex: 1; min-width: 0; background: #fffaf0; border: 1px solid #ded2bb; border-radius: 18px; padding: 20px; box-shadow: 0 10px 30px rgba(60,40,20,.06); }
+.candidate { display: grid; grid-template-columns: 1fr auto; width: 100%; margin-top: 8px; border: 1px solid #e1d7c4; border-radius: 12px; background: transparent; color: #2c211d; text-align: left; }
+.candidate:hover, .candidate.selected { background: #f2ead3; }
+.candidate span { grid-column: 1; color: #6d6258; font-size: 13px; }
+.candidate small { grid-column: 2; grid-row: 1 / span 2; color: #6d6258; }
+.docs { display: grid; gap: 9px; }
+.doc { align-items: center; justify-content: space-between; border-top: 1px solid #e1d7c4; padding: 12px 0; }
+.doc div { min-width: 0; display: grid; gap: 4px; }
+.doc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6d6258; font-size: 12px; }
+.doc button { padding: 8px 13px; font-size: 12px; white-space: nowrap; }
+.error { margin: 12px 0; color: #b3261e; }
+.center { min-height: 100vh; display: grid; place-items: center; }
+.login { max-width: 460px; padding: 36px; text-align: center; background: #fffaf0; border-radius: 20px; }
+.login p { margin: 16px 0 22px; color: #6d6258; line-height: 1.6; }
+.empty { color: #6d6258; padding: 40px 0; text-align: center; }
+@media (max-width: 760px) { .layout { flex-direction: column; } .panel { width: 100%; } header { align-items: flex-start; } h1 { font-size: 30px; } }
