@@ -525,17 +525,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={handleUpload} disabled={documentBusy || !documentsApiUrl} />
                   </label>
                 </div>
-                {turnstileSiteKey && (
-                  <div className="turnstile-box">
-                    <Turnstile
-                      siteKey={turnstileSiteKey}
-                      options={{ action: 'document-upload', theme: 'light' }}
-                      onSuccess={setTurnstileToken}
-                      onExpire={() => setTurnstileToken('')}
-                      onError={() => setTurnstileToken('')}
-                    />
-                  </div>
-                )}
                 {!documentsApiUrl && <p className="document-note">Upload dokumen belum aktif karena API Cloudflare belum dikonfigurasi.</p>}
                 {!turnstileSiteKey && <p className="document-note">Upload dokumen belum aktif karena Turnstile belum dikonfigurasi.</p>}
                 {documentsLoading ? <p className="document-note">Memuat daftar dokumen…</p> : documents.length === 0 ? (
@@ -555,6 +544,17 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       </li>
                     ))}
                   </ul>
+                )}
+                {turnstileSiteKey && (
+                  <div className="turnstile-box">
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      options={{ action: 'document-upload', theme: 'light' }}
+                      onSuccess={setTurnstileToken}
+                      onExpire={() => setTurnstileToken('')}
+                      onError={() => setTurnstileToken('')}
+                    />
+                  </div>
                 )}
               </div>
 
