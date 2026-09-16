@@ -1,5 +1,10 @@
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+const ALLOWED_DOCUMENT_TYPES = new Set(['ktp', 'kk', 'ijazah', 'cv', 'paspor', 'visa', 'pendukung'])
+const REQUIRED_DOCUMENT_TYPES = ['ktp', 'kk', 'ijazah', 'cv']
+const UPLOAD_RATE_WINDOW_MS = 10 * 60 * 1000
+const UPLOAD_RATE_LIMIT_PER_USER = 10
+const UPLOAD_RATE_LIMIT_PER_IP = 30
 
 function response(body, status, origin, headers = {}) {
   return new Response(body, {
@@ -14,8 +19,8 @@ function response(body, status, origin, headers = {}) {
   })
 }
 
-function json(data, status, origin) {
-  return response(JSON.stringify(data), status, origin, { 'Content-Type': 'application/json' })
+function json(data, status, origin, headers = {}) {
+  return response(JSON.stringify(data), status, origin, { 'Content-Type': 'application/json', ...headers })
 }
 
 function requestOrigin(request, env) {
@@ -27,6 +32,37 @@ function requestOrigin(request, env) {
 function authToken(request) {
   const value = request.headers.get('Authorization') || ''
   return value.startsWith('Bearer ') ? value.slice(7) : null
+}
+
+async function consumeRateLimit(key, limit, env) {
+  const now = Date.now()
+  const windowStart = now - UPLOAD_RATE_WINDOW_MS
+  await env.DB.prepare(
+    `INSERT INTO request_limits (rate_key, window_start, request_count)
+     VALUES (?, ?, 1)
+     ON CONFLICT(rate_key) DO UPDATE SET
+       window_start = CASE WHEN request_limits.window_start <= ? THEN excluded.window_start ELSE request_limits.window_start END,
+       request_count = CASE WHEN request_limits.window_start <= ? THEN 1 ELSE request_limits.request_count + 1 END`,
+  ).bind(key, now, windowStart, windowStart).run()
+
+  const current = await env.DB.prepare(
+    'SELECT request_count FROM request_limits WHERE rate_key = ?',
+  ).bind(key).first()
+  return Number(current?.request_count || 0) <= limit
+}
+
+async function enforceUploadRateLimit(request, user, env, origin) {
+  const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown'
+  const userAllowed = await consumeRateLimit(`upload:user:${user.id}`, UPLOAD_RATE_LIMIT_PER_USER, env)
+  const ipAllowed = await consumeRateLimit(`upload:ip:${clientIp}`, UPLOAD_RATE_LIMIT_PER_IP, env)
+  if (userAllowed && ipAllowed) return null
+
+  return json(
+    { error: 'Terlalu banyak percobaan upload. Silakan coba lagi beberapa menit kemudian.' },
+    429,
+    origin,
+    { 'Retry-After': String(UPLOAD_RATE_WINDOW_MS / 1000) },
+  )
 }
 
 async function authenticate(request, env) {
@@ -73,10 +109,42 @@ async function verifyTurnstile(token, request, env) {
 
 async function listDocuments(userId, env, origin) {
   const { results } = await env.DB.prepare(
-    `SELECT id, candidate_id, file_name, content_type, file_size, created_at
+    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
      FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
   ).bind(userId).all()
   return json({ documents: results }, 200, origin)
+}
+
+async function submitApplication(request, user, token, env, origin) {
+  const payload = await request.json().catch(() => null)
+  const agencyDocuments = {
+    paspor: payload?.paspor === true,
+    visa: payload?.visa === true,
+  }
+  const candidate = await candidateFor(user, token, env)
+  if (!candidate) return json({ error: 'Profil kandidat belum tersedia.' }, 404, origin)
+
+  const { results } = await env.DB.prepare(
+    `SELECT document_type FROM documents
+     WHERE user_id = ? AND document_type IS NOT NULL
+     GROUP BY document_type`,
+  ).bind(user.id).all()
+  const uploadedTypes = new Set(results.map((item) => item.document_type))
+  const missing = REQUIRED_DOCUMENT_TYPES.filter((type) => !uploadedTypes.has(type))
+  if (!agencyDocuments.paspor && !uploadedTypes.has('paspor')) missing.push('paspor')
+  if (!agencyDocuments.visa && !uploadedTypes.has('visa')) missing.push('visa')
+  if (missing.length) return json({ error: 'Dokumen wajib belum lengkap. Silakan lengkapi atau pilih pembuatan kolektif untuk Paspor/Visa.' }, 400, origin)
+
+  await env.DB.prepare(
+    `INSERT INTO applications (user_id, candidate_id, passport_by_agency, visa_by_agency)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET
+       candidate_id = excluded.candidate_id,
+       passport_by_agency = excluded.passport_by_agency,
+       visa_by_agency = excluded.visa_by_agency,
+       applied_at = CURRENT_TIMESTAMP`,
+  ).bind(user.id, candidate.candidate_id, agencyDocuments.paspor ? 1 : 0, agencyDocuments.visa ? 1 : 0).run()
+  return json({ applied: true }, 200, origin)
 }
 
 async function uploadDocument(request, user, token, env, origin) {
@@ -89,7 +157,9 @@ async function uploadDocument(request, user, token, env, origin) {
 
   const form = await request.formData()
   const file = form.get('file')
+  const documentType = String(form.get('document_type') || '')
   if (!(file instanceof File)) return json({ error: 'File dokumen wajib dipilih.' }, 400, origin)
+  if (!ALLOWED_DOCUMENT_TYPES.has(documentType)) return json({ error: 'Jenis dokumen tidak valid.' }, 400, origin)
   if (!ALLOWED_TYPES.has(file.type)) return json({ error: 'Format harus PDF, JPG, atau PNG.' }, 415, origin)
   if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
 
@@ -103,16 +173,16 @@ async function uploadDocument(request, user, token, env, origin) {
   try {
     await env.DB.prepare(
       `INSERT INTO documents
-       (id, user_id, candidate_id, object_key, file_name, content_type, file_size)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    ).bind(id, user.id, candidate.candidate_id, objectKey, file.name, file.type, file.size).run()
+       (id, user_id, candidate_id, document_type, object_key, file_name, content_type, file_size)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    ).bind(id, user.id, candidate.candidate_id, documentType, objectKey, file.name, file.type, file.size).run()
   } catch (error) {
     await env.DOCUMENTS.delete(objectKey)
     throw error
   }
 
   return json({
-    document: { id, candidate_id: candidate.candidate_id, file_name: file.name, content_type: file.type, file_size: file.size },
+    document: { id, candidate_id: candidate.candidate_id, document_type: documentType, file_name: file.name, content_type: file.type, file_size: file.size },
   }, 201, origin)
 }
 
@@ -154,8 +224,14 @@ export default {
         return listDocuments(user.id, env, origin)
       }
       if (url.pathname === '/documents' && request.method === 'POST') {
+        const rateLimitResponse = await enforceUploadRateLimit(request, user, env, origin)
+        if (rateLimitResponse) return rateLimitResponse
         const token = authToken(request)
         return uploadDocument(request, user, token, env, origin)
+      }
+      if (url.pathname === '/applications' && request.method === 'POST') {
+        const token = authToken(request)
+        return submitApplication(request, user, token, env, origin)
       }
 
       const match = url.pathname.match(/^\/documents\/([^/]+)$/)

@@ -1,5 +1,5 @@
 -- ============================================================
--- PT. JUAARA — Skema Supabase
+-- PT. JUARA — Skema Supabase
 -- 1) Buat project di https://supabase.com/dashboard
 -- 2) SQL Editor → paste seluruh file ini → Run
 -- 3) Authentication → Providers → aktifkan "Google",
