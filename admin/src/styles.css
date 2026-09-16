@@ -40,4 +40,5 @@ td:last-child { width: 190px; }
 .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .modal-header h2 { margin: 6px 0 4px; }
 .modal-header p { color: #6d6258; }
+.download-all { margin-bottom: 8px; }
 @media (max-width: 760px) { .layout { flex-direction: column; } .panel { width: 100%; } header { align-items: flex-start; } h1 { font-size: 30px; } }

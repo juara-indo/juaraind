@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
+import JSZip from 'jszip'
 import { getSupabase, isConfigured } from './supabaseClient.js'
 import './styles.css'
 
@@ -65,6 +66,37 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
+  const downloadAll = async (candidate) => {
+    if (!candidate.documents.length) return
+    try {
+      setError('')
+      const zip = new JSZip()
+      const folderName = `${candidate.candidate_id} - ${candidate.full_name || 'Nama belum diisi'}`
+      const folder = zip.folder(folderName)
+      const usedNames = new Map()
+      for (const item of candidate.documents) {
+        const response = await fetch(`${apiUrl}/admin/documents/${encodeURIComponent(item.id)}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (!response.ok) throw new Error(`Dokumen ${item.document_type.toUpperCase()} tidak dapat diunduh.`)
+        const extension = item.file_name.includes('.') ? `.${item.file_name.split('.').pop()}` : ''
+        const baseName = item.document_type.toUpperCase()
+        const count = (usedNames.get(baseName) || 0) + 1
+        usedNames.set(baseName, count)
+        folder.file(`${baseName}${count > 1 ? `-${count}` : ''}${extension}`, await response.arrayBuffer())
+      }
+      const blob = await zip.generateAsync({ type: 'blob' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `${folderName}.zip`
+      anchor.click()
+      URL.revokeObjectURL(url)
+    } catch (downloadError) {
+      setError(downloadError.message)
+    }
+  }
+
   if (loading) return <main className="center">Memeriksa sesi admin...</main>
   if (!session) return <Login />
   return (
@@ -73,7 +105,7 @@ function App() {
       <section className="toolbar"><button onClick={loadCandidates}>Muat ulang peserta</button></section>
       {error && <p className="error">{error}</p>}
       <section className="panel"><h2>Daftar peserta ({candidates.length})</h2><div className="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>ID Peserta</th><th>Dokumen</th></tr></thead><tbody>{candidates.map((candidate, index) => <tr key={candidate.candidate_id}><td>{index + 1}</td><td>{candidate.full_name || 'Nama belum diisi'}</td><td>{candidate.candidate_id}</td><td><button onClick={() => setSelectedCandidate(candidate)}>Lihat dokumen ({candidate.documents.length})</button></td></tr>)}</tbody></table></div>{!candidates.length && <div className="empty">Belum ada peserta.</div>}</section>
-      {selectedCandidate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCandidate(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="documents-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="eyebrow">DOKUMEN PESERTA</span><h2 id="documents-title">{selectedCandidate.full_name || 'Nama belum diisi'}</h2><p>{selectedCandidate.candidate_id}</p></div><button onClick={() => setSelectedCandidate(null)}>Tutup</button></div><div className="docs">{selectedCandidate.documents.map((item) => <div className="doc" key={item.id}><div><strong>{item.document_type.toUpperCase()}</strong><span>{item.file_name} · {(item.file_size / 1024 / 1024).toFixed(2)} MB</span></div><button onClick={() => download(item)}>Download</button></div>)}</div>{!selectedCandidate.documents.length && <div className="empty">Belum ada dokumen.</div>}</section></div>}
+      {selectedCandidate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCandidate(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="documents-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="eyebrow">DOKUMEN PESERTA</span><h2 id="documents-title">{selectedCandidate.full_name || 'Nama belum diisi'}</h2><p>{selectedCandidate.candidate_id}</p></div><button onClick={() => setSelectedCandidate(null)}>Tutup</button></div>{selectedCandidate.documents.length > 0 && <button className="download-all" onClick={() => downloadAll(selectedCandidate)}>Download semua</button>}<div className="docs">{selectedCandidate.documents.map((item) => <div className="doc" key={item.id}><div><strong>{item.document_type.toUpperCase()}</strong></div><button onClick={() => download(item)}>Download</button></div>)}</div>{!selectedCandidate.documents.length && <div className="empty">Belum ada dokumen.</div>}</section></div>}
     </main>
   )
 }
