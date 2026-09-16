@@ -6,11 +6,20 @@ import './styles.css'
 
 const apiUrl = import.meta.env.VITE_DOCUMENTS_API_URL
 
+function Icon({ name, size = 18 }) {
+  const paths = {
+    close: <><path d="m5 5 14 14M19 5 5 19" /></>,
+    download: <><path d="M12 3v12M7 10l5 5 5-5M4 21h16" /></>,
+  }
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
+}
+
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [candidates, setCandidates] = useState([])
   const [selectedCandidate, setSelectedCandidate] = useState(null)
+  const [downloadingCandidateId, setDownloadingCandidateId] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -70,6 +79,7 @@ function App() {
     if (!candidate.documents.length) return
     try {
       setError('')
+      setDownloadingCandidateId(candidate.candidate_id)
       const zip = new JSZip()
       const folderName = `${candidate.candidate_id} - ${candidate.full_name || 'Nama belum diisi'}`
       const folder = zip.folder(folderName)
@@ -94,6 +104,8 @@ function App() {
       URL.revokeObjectURL(url)
     } catch (downloadError) {
       setError(downloadError.message)
+    } finally {
+      setDownloadingCandidateId(null)
     }
   }
 
@@ -105,7 +117,7 @@ function App() {
       <section className="toolbar"><button onClick={loadCandidates}>Muat ulang peserta</button></section>
       {error && <p className="error">{error}</p>}
       <section className="panel"><h2>Daftar peserta ({candidates.length})</h2><div className="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>ID Peserta</th><th>Dokumen</th></tr></thead><tbody>{candidates.map((candidate, index) => <tr key={candidate.candidate_id}><td>{index + 1}</td><td>{candidate.full_name || 'Nama belum diisi'}</td><td>{candidate.candidate_id}</td><td><button onClick={() => setSelectedCandidate(candidate)}>Lihat dokumen ({candidate.documents.length})</button></td></tr>)}</tbody></table></div>{!candidates.length && <div className="empty">Belum ada peserta.</div>}</section>
-      {selectedCandidate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCandidate(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="documents-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="eyebrow">DOKUMEN PESERTA</span><h2 id="documents-title">{selectedCandidate.full_name || 'Nama belum diisi'}</h2><p>{selectedCandidate.candidate_id}</p></div><button onClick={() => setSelectedCandidate(null)}>Tutup</button></div>{selectedCandidate.documents.length > 0 && <button className="download-all" onClick={() => downloadAll(selectedCandidate)}>Download semua</button>}<div className="docs">{selectedCandidate.documents.map((item) => <div className="doc" key={item.id}><div><strong>{item.document_type.toUpperCase()}</strong></div><button onClick={() => download(item)}>Download</button></div>)}</div>{!selectedCandidate.documents.length && <div className="empty">Belum ada dokumen.</div>}</section></div>}
+      {selectedCandidate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCandidate(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="documents-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="eyebrow">DOKUMEN PESERTA</span><h2 id="documents-title">{selectedCandidate.full_name || 'Nama belum diisi'}</h2><p>{selectedCandidate.candidate_id}</p></div><button className="icon-button" aria-label="Tutup detail dokumen" title="Tutup" onClick={() => setSelectedCandidate(null)}><Icon name="close" /></button></div>{selectedCandidate.documents.length > 0 && <button className="download-all icon-button" aria-label="Download semua dokumen" title="Download semua dokumen" disabled={downloadingCandidateId === selectedCandidate.candidate_id} onClick={() => downloadAll(selectedCandidate)}>{downloadingCandidateId === selectedCandidate.candidate_id ? <span className="spinner" aria-label="Menyiapkan download" /> : <Icon name="download" />}</button>}<div className="docs">{selectedCandidate.documents.map((item) => <div className="doc" key={item.id}><div className="doc-label"><span className="document-icon"><Icon name="download" /></span><strong>{item.document_type.toUpperCase()}</strong></div><button className="icon-button" aria-label={`Download ${item.document_type}`} title={`Download ${item.document_type}`} onClick={() => download(item)}><Icon name="download" /></button></div>)}</div>{!selectedCandidate.documents.length && <div className="empty">Belum ada dokumen.</div>}</section></div>}
     </main>
   )
 }
