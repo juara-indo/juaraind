@@ -178,9 +178,14 @@ async function uploadDocuments(request, user, token, env, origin) {
   try {
     for (const [index, file] of files.entries()) {
       const id = crypto.randomUUID()
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-120) || 'document'
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-110) || 'document'
       const candidateFolder = safeObjectSegment(candidate.candidate_id)
-      const objectKey = `documents/${candidateFolder}/${id}-${safeName}`
+      const documentLabel = safeObjectSegment(documentTypes[index]).toUpperCase()
+      const extensionIndex = safeName.lastIndexOf('.')
+      const nameBase = extensionIndex > 0 ? safeName.slice(0, extensionIndex) : safeName
+      const extension = extensionIndex > 0 ? safeName.slice(extensionIndex) : ''
+      const objectName = `${documentLabel}-${nameBase}-${id.slice(0, 8)}${extension}`
+      const objectKey = `documents/${candidateFolder}/${objectName}`
       await env.DOCUMENTS.put(objectKey, file.stream(), {
         httpMetadata: { contentType: file.type },
       })
