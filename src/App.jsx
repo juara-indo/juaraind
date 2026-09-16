@@ -983,6 +983,8 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       ? (selected || [])
                       : (selected ? [selected] : [])
                     const file = files[0]
+                    const stored = hasUploadedDocument(documentType.id)
+                    const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
                     return (
                       <div className="document-slot" key={documentType.id}>
                         <div className="document-slot-info">
@@ -993,13 +995,21 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                               ? `${files.length} file dipilih · ${files.map((item) => item.name).join(', ')}`
                               : file
                                 ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`
+                                : stored
+                                  ? 'Dokumen tersimpan'
                                 : documentType.hint}
                           </span>
                         </div>
                         <label className={`upload-btn ${documentBusy || agencyDocuments[documentType.id] ? 'disabled' : ''}`}>
-                          {documentType.id === 'pendukung' && files.length ? 'Tambah file' : file ? 'Ganti file' : 'Pilih file'}
+                          {ready ? 'OK' : 'Pilih file'}
                           <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
                         </label>
+                        {ready && !agencyDocuments[documentType.id] && (
+                          <label className="edit-document-btn">
+                            Edit
+                            <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
+                          </label>
+                        )}
                         {(documentType.id === 'paspor' || documentType.id === 'visa') && (
                           <label className="agency-document-option">
                             <input type="checkbox" checked={agencyDocuments[documentType.id]} onChange={toggleAgencyDocument(documentType.id)} disabled={documentBusy || applying || applied} />
@@ -1012,24 +1022,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                 </div>
                 {!documentsApiUrl && <p className="document-note">Upload dokumen belum aktif karena API Cloudflare belum dikonfigurasi.</p>}
                 {!turnstileSiteKey && <p className="document-note">Upload dokumen belum aktif karena Turnstile belum dikonfigurasi.</p>}
-                {documentsLoading ? <p className="document-note">Memuat daftar dokumen…</p> : documents.length === 0 ? (
-                  <p className="document-note">Belum ada dokumen yang diupload.</p>
-                ) : (
-                  <ul className="document-list">
-                    {documents.map((document) => (
-                      <li key={document.id}>
-                        <div>
-                          <b>{document.file_name}</b>
-                          <span>{Math.ceil(document.file_size / 1024)} KB · {new Date(document.created_at).toLocaleDateString('id-ID')}</span>
-                        </div>
-                        <div className="document-actions">
-                          <button type="button" onClick={() => handleDocumentAction(() => download(document))} disabled={documentBusy}>Unduh</button>
-                          <button type="button" onClick={() => handleDocumentAction(() => remove(document))} disabled={documentBusy}>Hapus</button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
                 <p className="document-note">Pilih semua file terlebih dahulu, lalu centang verifikasi Cloudflare untuk mengunggahnya sekaligus.</p>
                 {turnstileSiteKey && (
                   <div className="turnstile-box">
