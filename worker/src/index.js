@@ -97,7 +97,23 @@ async function listAllAdminDocuments(env, origin) {
     `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
      FROM documents ORDER BY candidate_id, document_type, created_at DESC`,
   ).all()
-  return json({ documents: results }, 200, origin)
+  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name&order=created_at.desc&limit=100`, {
+    headers: supabaseAdminHeaders(env),
+  })
+  if (!candidateResponse.ok) throw new Error('Gagal mengambil daftar kandidat.')
+  const candidates = await candidateResponse.json()
+  const documentsByCandidate = new Map()
+  for (const document of results) {
+    const group = documentsByCandidate.get(document.candidate_id) || []
+    group.push(document)
+    documentsByCandidate.set(document.candidate_id, group)
+  }
+  return json({
+    candidates: candidates.map((candidate) => ({
+      ...candidate,
+      documents: documentsByCandidate.get(candidate.candidate_id) || [],
+    })),
+  }, 200, origin)
 }
 
 async function consumeRateLimit(key, limit, env) {

@@ -8,7 +8,8 @@ const apiUrl = import.meta.env.VITE_DOCUMENTS_API_URL
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [documents, setDocuments] = useState([])
+  const [candidates, setCandidates] = useState([])
+  const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -42,14 +43,14 @@ function App() {
     return payload
   }
 
-  const loadDocuments = async () => {
+  const loadCandidates = async () => {
     try {
       setError('')
-      setDocuments((await request('/admin/documents')).documents)
+      setCandidates((await request('/admin/documents')).candidates)
     } catch (requestError) { setError(requestError.message) }
   }
 
-  useEffect(() => { if (session) loadDocuments() }, [session])
+  useEffect(() => { if (session) loadCandidates() }, [session])
 
   const download = async (item) => {
     const response = await fetch(`${apiUrl}/admin/documents/${encodeURIComponent(item.id)}`, {
@@ -64,21 +65,15 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
-  const documentsByCandidate = documents.reduce((groups, item) => {
-    const group = groups.get(item.candidate_id) || []
-    group.push(item)
-    groups.set(item.candidate_id, group)
-    return groups
-  }, new Map())
-
   if (loading) return <main className="center">Memeriksa sesi admin...</main>
   if (!session) return <Login />
   return (
     <main>
       <header><div><span className="eyebrow">PT. JUARA · ADMIN</span><h1>Dokumen kandidat</h1></div><button onClick={() => getSupabase()?.auth.signOut()}>Keluar</button></header>
-      <section className="toolbar"><button onClick={loadDocuments}>Muat ulang dokumen</button></section>
+      <section className="toolbar"><button onClick={loadCandidates}>Muat ulang peserta</button></section>
       {error && <p className="error">{error}</p>}
-      <section className="panel"><h2>Peserta ({documentsByCandidate.size}) · Dokumen ({documents.length})</h2>{documentsByCandidate.size ? <div className="candidate-groups">{[...documentsByCandidate].map(([candidateId, candidateDocuments]) => <section className="candidate-group" key={candidateId}><h3>{candidateId}</h3><div className="docs">{candidateDocuments.map((item) => <div className="doc" key={item.id}><div><strong>{item.document_type.toUpperCase()}</strong><span>{item.file_name} · {(item.file_size / 1024 / 1024).toFixed(2)} MB</span></div><button onClick={() => download(item)}>Download</button></div>)}</div></section>)}</div> : <div className="empty">Belum ada dokumen peserta.</div>}</section>
+      <section className="panel"><h2>Daftar peserta ({candidates.length})</h2><div className="table-wrap"><table><thead><tr><th>No</th><th>Nama</th><th>ID Peserta</th><th>Dokumen</th></tr></thead><tbody>{candidates.map((candidate, index) => <tr key={candidate.candidate_id}><td>{index + 1}</td><td>{candidate.full_name || 'Nama belum diisi'}</td><td>{candidate.candidate_id}</td><td><button onClick={() => setSelectedCandidate(candidate)}>Lihat dokumen ({candidate.documents.length})</button></td></tr>)}</tbody></table></div>{!candidates.length && <div className="empty">Belum ada peserta.</div>}</section>
+      {selectedCandidate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCandidate(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="documents-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="eyebrow">DOKUMEN PESERTA</span><h2 id="documents-title">{selectedCandidate.full_name || 'Nama belum diisi'}</h2><p>{selectedCandidate.candidate_id}</p></div><button onClick={() => setSelectedCandidate(null)}>Tutup</button></div><div className="docs">{selectedCandidate.documents.map((item) => <div className="doc" key={item.id}><div><strong>{item.document_type.toUpperCase()}</strong><span>{item.file_name} · {(item.file_size / 1024 / 1024).toFixed(2)} MB</span></div><button onClick={() => download(item)}>Download</button></div>)}</div>{!selectedCandidate.documents.length && <div className="empty">Belum ada dokumen.</div>}</section></div>}
     </main>
   )
 }

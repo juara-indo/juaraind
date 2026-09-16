@@ -19,9 +19,6 @@ input { flex: 1; min-width: 0; border: 1px solid #d6c9ae; border-radius: 999px; 
 .candidate:hover, .candidate.selected { background: #f2ead3; }
 .candidate span { grid-column: 1; color: #6d6258; font-size: 13px; }
 .candidate small { grid-column: 2; grid-row: 1 / span 2; color: #6d6258; }
-.candidate-groups { display: grid; gap: 22px; }
-.candidate-group { border: 1px solid #e1d7c4; border-radius: 14px; padding: 0 16px; }
-.candidate-group h3 { margin: 0 -16px; padding: 14px 16px; background: #f2ead3; border-radius: 14px 14px 0 0; font-size: 17px; }
 .docs { display: grid; gap: 9px; }
 .doc { align-items: center; justify-content: space-between; border-top: 1px solid #e1d7c4; padding: 12px 0; }
 .doc div { min-width: 0; display: grid; gap: 4px; }
@@ -32,4 +29,15 @@ input { flex: 1; min-width: 0; border: 1px solid #d6c9ae; border-radius: 999px; 
 .login { max-width: 460px; padding: 36px; text-align: center; background: #fffaf0; border-radius: 20px; }
 .login p { margin: 16px 0 22px; color: #6d6258; line-height: 1.6; }
 .empty { color: #6d6258; padding: 40px 0; text-align: center; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 14px 12px; border-bottom: 1px solid #e1d7c4; text-align: left; vertical-align: middle; }
+th { color: #6d6258; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+td:first-child { width: 64px; color: #6d6258; }
+td:last-child { width: 190px; }
+.modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(44,33,29,.48); z-index: 10; }
+.modal { width: min(680px, 100%); max-height: min(720px, 90vh); overflow: auto; padding: 24px; background: #fffaf0; border-radius: 18px; box-shadow: 0 20px 60px rgba(44,33,29,.25); }
+.modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.modal-header h2 { margin: 6px 0 4px; }
+.modal-header p { color: #6d6258; }
 @media (max-width: 760px) { .layout { flex-direction: column; } .panel { width: 100%; } header { align-items: flex-start; } h1 { font-size: 30px; } }
