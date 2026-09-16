@@ -719,6 +719,9 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const hasUploadedDocument = (documentType) => documents.some((document) => document.document_type === documentType)
   const documentReady = (documentType) => hasUploadedDocument(documentType) || agencyDocuments[documentType]
   const canApply = requiredDocumentTypes.every(documentReady) && !applying && !applied
+  const hasPendingDocuments = Object.values(selectedDocuments).some((selected) => (
+    Array.isArray(selected) ? selected.length > 0 : Boolean(selected)
+  ))
 
   const handleApply = async () => {
     if (!canApply) return
@@ -1023,8 +1026,10 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                 </div>
                 {!documentsApiUrl && <p className="document-note">Upload dokumen belum aktif karena API Cloudflare belum dikonfigurasi.</p>}
                 {!turnstileSiteKey && <p className="document-note">Upload dokumen belum aktif karena Turnstile belum dikonfigurasi.</p>}
-                <p className="document-note">Pilih semua file terlebih dahulu, lalu centang verifikasi Cloudflare untuk mengunggahnya sekaligus.</p>
-                {turnstileSiteKey && (
+                {hasPendingDocuments && (
+                  <p className="document-note">Centang verifikasi Cloudflare untuk mengunggah file yang dipilih.</p>
+                )}
+                {hasPendingDocuments && turnstileSiteKey && (
                   <div className="turnstile-box">
                     <Turnstile
                       siteKey={turnstileSiteKey}
