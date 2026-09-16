@@ -482,8 +482,9 @@ a { color: inherit; }
 .documents-head p, .document-note { color: var(--ink-soft); font-size: 13px; line-height: 1.6; margin: 7px 0 0; }
 .document-slots { display: grid; gap: 10px; margin-top: 20px; }
 .document-slot { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 64px; padding: 11px 13px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.48); }
-.document-slot-info { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; align-items: center; }
-.document-slot-info strong, .document-slot-info span { display: block; grid-column: 2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.document-slot-info { min-width: 0; display: grid; grid-template-columns: auto auto minmax(0, 1fr); column-gap: 10px; align-items: center; }
+.document-number { grid-row: 1 / span 2; color: var(--crimson); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+.document-slot-info strong, .document-slot-info span:not(.document-number) { display: block; grid-column: 3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .document-slot-info strong { font-size: 13px; color: var(--ink); }
 .document-slot-info span { margin-top: 3px; color: var(--ink-soft); font-size: 11px; }
 .document-icon { grid-column: 1; grid-row: 1 / span 2; width: 26px; height: 26px; padding: 5px; color: var(--crimson); background: rgba(179,38,30,.08); border-radius: 8px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }

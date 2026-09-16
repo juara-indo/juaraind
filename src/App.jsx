@@ -977,7 +977,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                   </div>
                 </div>
                 <div className="document-slots">
-                  {documentTypes.map((documentType) => {
+                  {documentTypes.map((documentType, index) => {
                     const selected = selectedDocuments[documentType.id]
                     const files = documentType.id === 'pendukung'
                       ? (selected || [])
@@ -988,6 +988,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     return (
                       <div className="document-slot" key={documentType.id}>
                         <div className="document-slot-info">
+                          <span className="document-number">{String(index + 1).padStart(2, '0')}</span>
                           <DocumentIcon type={documentType.id} />
                           <strong>{documentType.label}</strong>
                           <span>
