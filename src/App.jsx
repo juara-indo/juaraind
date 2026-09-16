@@ -1091,10 +1091,16 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                                 : documentType.hint}
                           </span>
                         </div>
-                        <label className={`upload-btn ${documentBusy || agencyDocuments[documentType.id] ? 'disabled' : ''}`}>
-                          {ready ? 'OK' : 'Pilih file'}
-                          <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
-                        </label>
+                        {ready ? (
+                          <span className="upload-btn upload-status" aria-label="Dokumen sudah dipilih">
+                            OK
+                          </span>
+                        ) : (
+                          <label className={`upload-btn ${documentBusy || agencyDocuments[documentType.id] ? 'disabled' : ''}`}>
+                            Pilih file
+                            <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
+                          </label>
+                        )}
                         {ready && !agencyDocuments[documentType.id] && (
                           <label className="edit-document-btn">
                             Edit
