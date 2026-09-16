@@ -595,6 +595,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const [err, setErr] = useState('')
   const [activeTab, setActiveTab] = useState('profile')
   const [isEditing, setIsEditing] = useState(true)
+  const autocompleteEnter = React.useRef(false)
   const { provinces, cities, postalCodes } = useRegionOptions(form)
 
   React.useEffect(() => {
@@ -617,14 +618,15 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
 
   const set = (k) => (e) => { setForm((f) => ({ ...f, [k]: e.target.value })); setSaved(false) }
   const keepAutocompleteOpen = (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      event.currentTarget.showPicker?.()
-    }
+    if (event.key === 'Enter') autocompleteEnter.current = true
   }
 
   const save = async (e) => {
     e.preventDefault()
+    if (autocompleteEnter.current) {
+      autocompleteEnter.current = false
+      return
+    }
     setErr('')
     if (!form.full_name?.trim()) { setErr('Nama lengkap wajib diisi.'); return }
     if (form.birth_date && !databaseDate(form.birth_date)) {
