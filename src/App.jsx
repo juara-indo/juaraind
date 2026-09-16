@@ -805,7 +805,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const requiredDocumentTypes = ['ktp', 'kk', 'ijazah', 'cv', 'paspor', 'visa']
   const hasUploadedDocument = (documentType) => documents.some((document) => document.document_type === documentType)
   const documentReady = (documentType) => hasUploadedDocument(documentType) || agencyDocuments[documentType]
-  const canApply = requiredDocumentTypes.every(documentReady) && !applying && !applied
+  const canApply = requiredDocumentTypes.every(documentReady) && !documentBusy && !applying && !applied
   const hasPendingDocuments = Object.values(selectedDocuments).some((selected) => (
     Array.isArray(selected) ? selected.length > 0 : Boolean(selected)
   ))
@@ -1135,8 +1135,9 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                 )}
                 <div className="document-apply">
                   <p className="document-note">Dokumen pendukung bersifat opsional. KTP, KK, ijazah, dan CV wajib tersedia; Paspor dan Visa dapat digantikan dengan pilihan kolektif agency.</p>
-                  <button className="apply-btn" type="button" onClick={handleApply} disabled={!canApply}>
-                    {applying ? 'Menyimpan…' : applied ? '✓ Sudah Apply' : 'Apply'}
+                  <button className="apply-btn" type="button" onClick={handleApply} disabled={!canApply} aria-busy={documentBusy || applying}>
+                    {documentBusy ? 'Menyimpan dokumen…' : applying ? 'Menyimpan pendaftaran…' : applied ? '✓ Sudah Apply' : 'Apply'}
+                    {(documentBusy || applying) && <span className="apply-spinner" aria-hidden="true" />}
                   </button>
                 </div>
               </div>}
