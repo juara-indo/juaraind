@@ -699,7 +699,19 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
         postal_code: cand.postal_code || '',
         experience: cand.experience || '',
       })
-      setIsEditing(!cand.full_name)
+      const profileValues = [
+        cand.full_name,
+        cand.birth_place,
+        cand.birth_date,
+        cand.gender,
+        cand.phone,
+        cand.address,
+        cand.province,
+        cand.city,
+        cand.postal_code,
+        cand.experience,
+      ]
+      setIsEditing(profileValues.some((value) => !String(value || '').trim()))
     }
   }, [cand])
 
