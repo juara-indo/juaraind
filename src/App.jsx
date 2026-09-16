@@ -975,17 +975,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     <p>Unggah KTP, KK, paspor, CV, sertifikat, atau dokumen pendukung lainnya. Maksimal 5 MB per file.</p>
                   </div>
                 </div>
-                {turnstileSiteKey && (
-                  <div className="turnstile-box">
-                    <Turnstile
-                      siteKey={turnstileSiteKey}
-                      options={{ action: 'document-upload', theme: 'light' }}
-                      onSuccess={setTurnstileToken}
-                      onExpire={() => setTurnstileToken('')}
-                      onError={() => setTurnstileToken('')}
-                    />
-                  </div>
-                )}
                 <div className="document-slots">
                   {documentTypes.map((documentType) => {
                     const selected = selectedDocuments[documentType.id]
@@ -1042,6 +1031,17 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       </li>
                     ))}
                   </ul>
+                )}
+                {turnstileSiteKey && (
+                  <div className="turnstile-box">
+                    <Turnstile
+                      siteKey={turnstileSiteKey}
+                      options={{ action: 'document-upload', theme: 'light' }}
+                      onSuccess={setTurnstileToken}
+                      onExpire={() => setTurnstileToken('')}
+                      onError={() => setTurnstileToken('')}
+                    />
+                  </div>
                 )}
                 <div className="document-apply">
                   <p className="document-note">Dokumen pendukung bersifat opsional. KTP, KK, ijazah, dan CV wajib tersedia; Paspor dan Visa dapat digantikan dengan pilihan kolektif agency.</p>
