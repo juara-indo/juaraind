@@ -138,6 +138,91 @@ function CustomSelect({ value, onChange, options, placeholder, required = false,
   )
 }
 
+function SearchableSelect({ value, onChange, options, placeholder, id, tabIndex, disabled = false }) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [highlighted, setHighlighted] = useState(0)
+  const rootRef = React.useRef(null)
+  const inputRef = React.useRef(null)
+  const normalizedOptions = options.map((option) => typeof option === 'string' ? { value: option, label: option } : option)
+  const filteredOptions = normalizedOptions.filter((option) => option.label.toLowerCase().includes(query.toLowerCase()))
+
+  React.useEffect(() => {
+    if (!open) return undefined
+    const closeWhenOutside = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', closeWhenOutside)
+    return () => document.removeEventListener('pointerdown', closeWhenOutside)
+  }, [open])
+
+  const selectOption = (option) => {
+    onChange({ target: { value: option.value } })
+    setQuery('')
+    setOpen(false)
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      if (!open) {
+        setOpen(true)
+        setHighlighted(0)
+      } else if (filteredOptions[highlighted]) {
+        selectOption(filteredOptions[highlighted])
+      }
+      return
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!open) setOpen(true)
+      const delta = event.key === 'ArrowDown' ? 1 : -1
+      setHighlighted((current) => Math.max(0, Math.min(filteredOptions.length - 1, current + delta)))
+      return
+    }
+    if (event.key === 'Escape') {
+      setOpen(false)
+      setQuery('')
+    }
+  }
+
+  return (
+    <div ref={rootRef} className={`searchable-select ${open ? 'is-open' : ''}`}>
+      <input
+        ref={inputRef}
+        id={id}
+        tabIndex={tabIndex}
+        value={open ? query : value}
+        onChange={(event) => { setQuery(event.target.value); setHighlighted(0); setOpen(true) }}
+        onFocus={() => { setQuery(''); setHighlighted(0); setOpen(true) }}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        disabled={disabled}
+        autoComplete="off"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      />
+      {open && (
+        <div className="searchable-select-menu" role="listbox">
+          {filteredOptions.length ? filteredOptions.map((option, index) => (
+            <button
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={index === highlighted ? 'is-highlighted' : ''}
+              key={option.value}
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => selectOption(option)}
+            >
+              {option.label}
+            </button>
+          )) : <span className="searchable-select-empty">Tidak ada pilihan</span>}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const displayDate = (value) => {
   if (!value) return ''
   const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/)
@@ -595,7 +680,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const [err, setErr] = useState('')
   const [activeTab, setActiveTab] = useState('profile')
   const [isEditing, setIsEditing] = useState(true)
-  const autocompleteEnter = React.useRef(false)
   const { provinces, cities, postalCodes } = useRegionOptions(form)
 
   React.useEffect(() => {
@@ -617,16 +701,8 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   }, [cand])
 
   const set = (k) => (e) => { setForm((f) => ({ ...f, [k]: e.target.value })); setSaved(false) }
-  const keepAutocompleteOpen = (event) => {
-    if (event.key === 'Enter') autocompleteEnter.current = true
-  }
-
   const save = async (e) => {
     e.preventDefault()
-    if (autocompleteEnter.current) {
-      autocompleteEnter.current = false
-      return
-    }
     setErr('')
     if (!form.full_name?.trim()) { setErr('Nama lengkap wajib diisi.'); return }
     if (form.birth_date && !databaseDate(form.birth_date)) {
@@ -894,15 +970,6 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       </div>
                       <p><span className="required-mark">*</span> Wajib diisi</p>
                     </div>
-                    <datalist id="province-options">
-                      {provinces.map((item) => <option key={item.id} value={item.name} />)}
-                    </datalist>
-                    <datalist id="city-options">
-                      {cities.map((item) => <option key={item.id} value={item.name} />)}
-                    </datalist>
-                    <datalist id="postal-options">
-                      {postalCodes.map((code) => <option key={code} value={code} />)}
-                    </datalist>
                   <div className="field full">
                     <label htmlFor="full-name">Nama lengkap <span>(sesuai paspor)</span> <i>*</i></label>
                     <input id="full-name" tabIndex="1" className="title-case" value={form.full_name} onChange={set('full_name')} onBlur={() => setForm((current) => ({ ...current, full_name: toTitleCase(current.full_name) }))} placeholder="cth. Rizky Pratama" maxLength={160} readOnly={!isEditing} required />
@@ -940,15 +1007,15 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                   </div>
                   <div className="field">
                     <label htmlFor="province">Provinsi</label>
-                    <input id="province" list="province-options" tabIndex="7" className="title-case" value={form.province} onChange={set('province')} onKeyDown={keepAutocompleteOpen} onBlur={() => setForm((current) => ({ ...current, province: toTitleCase(current.province) }))} placeholder="Ketik untuk mencari provinsi" maxLength={100} readOnly={!isEditing} />
+                    <SearchableSelect id="province" tabIndex="7" value={form.province} options={provinces} onChange={set('province')} placeholder="Ketik untuk mencari provinsi" disabled={!isEditing} />
                   </div>
                   <div className="field">
                     <label htmlFor="city">Kota / kabupaten</label>
-                    <input id="city" list="city-options" tabIndex="8" className="title-case" value={form.city} onChange={set('city')} onKeyDown={keepAutocompleteOpen} onBlur={() => setForm((current) => ({ ...current, city: toTitleCase(current.city) }))} placeholder="Pilih provinsi terlebih dahulu" maxLength={100} readOnly={!isEditing} />
+                    <SearchableSelect id="city" tabIndex="8" value={form.city} options={cities} onChange={set('city')} placeholder="Pilih provinsi terlebih dahulu" disabled={!isEditing || !cities.length} />
                   </div>
                   <div className="field">
                     <label htmlFor="postal-code">Kode pos</label>
-                    <input id="postal-code" list="postal-options" tabIndex="9" value={form.postal_code} onChange={set('postal_code')} onKeyDown={keepAutocompleteOpen} placeholder="Ketik untuk mencari kode pos" inputMode="numeric" maxLength={10} readOnly={!isEditing} />
+                    <SearchableSelect id="postal-code" tabIndex="9" value={form.postal_code} options={postalCodes} onChange={set('postal_code')} placeholder="Ketik untuk mencari kode pos" disabled={!isEditing || !postalCodes.length} />
                   </div>
                   <div className="field full">
                     <label htmlFor="experience">Pengalaman kerja singkat</label>
