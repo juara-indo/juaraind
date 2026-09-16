@@ -6,7 +6,7 @@ function response(body, status, origin, headers = {}) {
     status,
     headers: {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Turnstile-Token',
       'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
       'Vary': 'Origin',
       ...headers,
