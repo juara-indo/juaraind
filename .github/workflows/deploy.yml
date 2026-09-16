@@ -31,7 +31,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_DOCUMENTS_API_URL: ${{ secrets.VITE_DOCUMENTS_API_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-          VITE_MAINTENANCE_MODE: 'false'
+          VITE_MAINTENANCE_MODE: 'true'
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
