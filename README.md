@@ -53,7 +53,7 @@ anatolia-karier/
 ### 1) Supabase — database + login Google
 1. Buat project baru di [supabase.com/dashboard](https://supabase.com/dashboard).
 2. Buka **SQL Editor → New query**, paste seluruh isi `supabase/schema.sql`, lalu **Run**.
-   Ini membuat tabel `candidates`, keamanan RLS, dan trigger penerbit ID `TKI-...`.
+   Ini membuat tabel `candidates`, keamanan RLS, dan trigger penerbit ID `IND-...` untuk peserta baru.
 3. **Authentication → Providers → Google** → aktifkan. Anda butuh **Client ID & Client Secret** dari
    [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
    - Buat *OAuth consent screen* (External, isi nama app & email).
