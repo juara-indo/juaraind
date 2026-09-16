@@ -144,7 +144,10 @@ function SearchableSelect({ value, onChange, options, placeholder, id, tabIndex,
   const [highlighted, setHighlighted] = useState(0)
   const rootRef = React.useRef(null)
   const inputRef = React.useRef(null)
-  const normalizedOptions = options.map((option) => typeof option === 'string' ? { value: option, label: option } : option)
+  const normalizedOptions = options.map((option) => {
+    if (typeof option === 'string') return { value: option, label: option }
+    return { value: option.value ?? option.name, label: option.label ?? option.name }
+  })
   const filteredOptions = normalizedOptions.filter((option) => option.label.toLowerCase().includes(query.toLowerCase()))
 
   React.useEffect(() => {
