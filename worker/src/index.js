@@ -100,7 +100,10 @@ async function listAllAdminDocuments(env, origin) {
   const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name&order=created_at.desc&limit=100`, {
     headers: supabaseAdminHeaders(env),
   })
-  if (!candidateResponse.ok) throw new Error('Gagal mengambil daftar kandidat.')
+  if (!candidateResponse.ok) {
+    console.error('Supabase candidates request failed', candidateResponse.status, await candidateResponse.text())
+    throw new Error('Gagal mengambil daftar kandidat.')
+  }
   const candidates = await candidateResponse.json()
   const documentsByCandidate = new Map()
   for (const document of results) {
