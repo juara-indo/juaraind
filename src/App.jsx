@@ -683,7 +683,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const [err, setErr] = useState('')
   const [activeTab, setActiveTab] = useState('profile')
   const [isEditing, setIsEditing] = useState(true)
-  const { provinces, cities, postalCodes } = useRegionOptions(form)
+  const { provinces, cities } = useRegionOptions(form)
 
   React.useEffect(() => {
     if (cand) {
@@ -1018,7 +1018,16 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                   </div>
                   <div className="field">
                     <label htmlFor="postal-code">Kode pos</label>
-                    <SearchableSelect id="postal-code" tabIndex="9" value={form.postal_code} options={postalCodes} onChange={set('postal_code')} placeholder="Ketik untuk mencari kode pos" disabled={!isEditing || !postalCodes.length} />
+                    <input
+                      id="postal-code"
+                      tabIndex="9"
+                      value={form.postal_code}
+                      onChange={set('postal_code')}
+                      placeholder="Masukkan kode pos"
+                      inputMode="numeric"
+                      maxLength={10}
+                      readOnly={!isEditing}
+                    />
                   </div>
                   <div className="field full">
                     <label htmlFor="experience">Pengalaman kerja singkat</label>
