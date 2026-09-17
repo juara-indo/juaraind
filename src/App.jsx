@@ -816,6 +816,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
 
   const requiredDocumentTypes = ['ktp', 'kk', 'ijazah', 'cv', 'paspor', 'visa']
   const hasUploadedDocument = (documentType) => documents.some((document) => document.document_type === documentType)
+  const hasAcceptedDocument = (documentType) => documents.some((document) => document.document_type === documentType && document.validation_status === 'accepted')
   const documentReady = (documentType) => hasUploadedDocument(documentType) || agencyDocuments[documentType]
   const canApply = requiredDocumentTypes.every(documentReady) && !documentBusy && !applying && !applied
   const hasPendingDocuments = Object.values(selectedDocuments).some((selected) => (
@@ -1086,6 +1087,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                       : (selected ? [selected] : [])
                     const file = files[0]
                     const stored = hasUploadedDocument(documentType.id)
+                    const accepted = hasAcceptedDocument(documentType.id)
                     const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
                     return (
                       <div className="document-slot" key={documentType.id}>
@@ -1113,7 +1115,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                             <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
                           </label>
                         )}
-                        {ready && !agencyDocuments[documentType.id] && (
+                        {ready && !agencyDocuments[documentType.id] && !accepted && (
                           <label className="edit-document-btn">
                             Edit
                             <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
@@ -1121,7 +1123,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                         )}
                         {(documentType.id === 'paspor' || documentType.id === 'visa') && (
                           <label className="agency-document-option">
-                            <input type="checkbox" checked={agencyDocuments[documentType.id]} onChange={toggleAgencyDocument(documentType.id)} disabled={documentBusy || applying || applied} />
+                            <input type="checkbox" checked={agencyDocuments[documentType.id]} onChange={toggleAgencyDocument(documentType.id)} disabled={documentBusy || applying || applied || accepted} />
                             <span>Dibuat kolektif oleh agency</span>
                           </label>
                         )}

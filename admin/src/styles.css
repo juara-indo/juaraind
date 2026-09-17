@@ -46,6 +46,14 @@ input { flex: 1; min-width: 0; border: 1px solid #d6c9ae; border-radius: 999px; 
 .doc span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #6d6258; font-size: 12px; }
 .doc-label { display: flex !important; align-items: center; gap: 10px; }
 .document-icon { display: inline-flex; color: #b3261e; }
+.document-actions { display: flex; align-items: center; gap: 6px; }
+.review-button { padding: 6px 9px; font-size: 11px; }
+.review-button.accept { background: #2f7d32; }
+.review-button.reject { background: #c88713; }
+.review-button:disabled { opacity: .45; cursor: not-allowed; }
+.review-status { color: #6d6258; font-size: 11px; }
+.review-status.accepted { color: #2f7d32; }
+.review-status.rejected { color: #b3261e; }
 .preview-modal { width: min(900px, 100%); }
 .preview-loading-backdrop { z-index: 20; }
 .preview-loading { display: flex; align-items: center; gap: 12px; padding: 18px 22px; color: #2c211d; background: #fffaf0; border-radius: 14px; box-shadow: 0 20px 60px rgba(44,33,29,.25); }

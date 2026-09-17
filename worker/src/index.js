@@ -16,7 +16,7 @@ function response(body, status, origin, headers = {}) {
     headers: {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Turnstile-Token',
-      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
       'Vary': 'Origin',
       ...headers,
     },
@@ -86,7 +86,7 @@ async function listAdminCandidates(request, env, origin) {
 
 async function listAdminDocuments(candidateId, env, origin) {
   const { results } = await env.DB.prepare(
-    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
+    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, validation_status, reviewed_at, created_at
      FROM documents WHERE candidate_id = ? ORDER BY created_at ASC, rowid ASC`,
   ).bind(candidateId).all()
   return json({ documents: results }, 200, origin)
@@ -94,7 +94,7 @@ async function listAdminDocuments(candidateId, env, origin) {
 
 async function listAllAdminDocuments(env, origin) {
   const { results } = await env.DB.prepare(
-    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
+    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, validation_status, reviewed_at, created_at
      FROM documents ORDER BY candidate_id, created_at ASC, rowid ASC`,
   ).all()
   const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name,birth_place,birth_date,gender,phone,address,province,city,postal_code,experience&order=created_at.desc&limit=100`, {
@@ -269,7 +269,7 @@ async function verifyTurnstile(token, request, env) {
 
 async function listDocuments(userId, env, origin) {
   const { results } = await env.DB.prepare(
-    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
+    `SELECT id, candidate_id, document_type, file_name, content_type, file_size, validation_status, reviewed_at, created_at
      FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
   ).bind(userId).all()
   return json({ documents: results }, 200, origin)
@@ -333,7 +333,7 @@ async function uploadDocuments(request, user, token, env, origin) {
   const replaceTypes = [...new Set(documentTypes.filter((type) => type !== 'pendukung'))]
   const previousDocuments = replaceTypes.length
     ? (await env.DB.prepare(
-      `SELECT id, object_key FROM documents
+      `SELECT id, object_key, validation_status FROM documents
        WHERE user_id = ? AND document_type IN (${replaceTypes.map(() => '?').join(',')})`,
     ).bind(user.id, ...replaceTypes).all()).results
     : []
@@ -403,9 +403,10 @@ async function downloadDocument(request, user, id, env, origin) {
 
 async function deleteDocument(user, id, env, origin) {
   const document = await env.DB.prepare(
-    'SELECT object_key FROM documents WHERE id = ? AND user_id = ?',
+    'SELECT object_key, validation_status FROM documents WHERE id = ? AND user_id = ?',
   ).bind(id, user.id).first()
   if (!document) return json({ error: 'Dokumen tidak ditemukan.' }, 404, origin)
+  if (document.validation_status === 'accepted') return json({ error: 'Dokumen yang sudah diterima tidak dapat diubah.' }, 409, origin)
   await env.DOCUMENTS.delete(document.object_key)
   await env.DB.prepare('DELETE FROM documents WHERE id = ? AND user_id = ?').bind(id, user.id).run()
   return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } })
@@ -422,6 +423,17 @@ async function downloadAdminDocument(id, env, origin) {
     'Content-Type': document.content_type,
     'Content-Disposition': `attachment; filename="${document.file_name.replace(/["\r\n]/g, '_')}"`,
   })
+}
+
+async function reviewAdminDocument(request, id, env, origin) {
+  const payload = await request.json().catch(() => null)
+  const status = payload?.status
+  if (!['accepted', 'rejected'].includes(status)) return json({ error: 'Status review tidak valid.' }, 400, origin)
+  const result = await env.DB.prepare(
+    'UPDATE documents SET validation_status = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?',
+  ).bind(status, id).run()
+  if (!result.meta?.changes) return json({ error: 'Dokumen tidak ditemukan.' }, 404, origin)
+  return json({ id, validation_status: status }, 200, origin)
 }
 
 export default {
@@ -453,6 +465,10 @@ export default {
         return listAdminDocuments(decodeURIComponent(adminDocumentMatch[1]), env, origin)
       }
       const adminDownloadMatch = url.pathname.match(/^\/admin\/documents\/([^/]+)$/)
+      if (adminDownloadMatch && request.method === 'PATCH') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return reviewAdminDocument(request, decodeURIComponent(adminDownloadMatch[1]), env, origin)
+      }
       if (adminDownloadMatch && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return downloadAdminDocument(decodeURIComponent(adminDownloadMatch[1]), env, origin)
