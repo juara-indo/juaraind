@@ -679,9 +679,9 @@ function Nav({ session, onLogin, language, setLanguage }) {
       <label className="language-select">
         <span className="sr-only">Bahasa</span>
         <select value={language} onChange={(event) => setLanguage(event.target.value)} aria-label="Pilih bahasa">
-          <option value="id">ID</option>
-          <option value="en">EN</option>
-          <option value="tr">TR</option>
+          <option value="id">Indonesia</option>
+          <option value="en">English</option>
+          <option value="tr">Türkçe</option>
         </select>
       </label>
       <button className="nav-cta" onClick={() => (session ? go('daftar') : onLogin())}>
