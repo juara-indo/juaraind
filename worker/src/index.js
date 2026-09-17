@@ -97,7 +97,7 @@ async function listAllAdminDocuments(env, origin) {
     `SELECT id, candidate_id, document_type, file_name, content_type, file_size, validation_status, reviewed_at, created_at
      FROM documents ORDER BY candidate_id, created_at ASC, rowid ASC`,
   ).all()
-  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name,birth_place,birth_date,gender,phone,address,province,city,postal_code,experience&order=created_at.desc&limit=100`, {
+  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=id,candidate_id,full_name,birth_place,birth_date,gender,phone,address,province,city,postal_code,experience&order=created_at.desc&limit=100`, {
     headers: supabaseAdminHeaders(env),
   })
   if (!candidateResponse.ok) {
@@ -105,6 +105,12 @@ async function listAllAdminDocuments(env, origin) {
     throw new Error('Gagal mengambil daftar kandidat.')
   }
   const candidates = await candidateResponse.json()
+  const authUsersResponse = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users?per_page=100`, {
+    headers: supabaseAdminHeaders(env),
+  })
+  if (!authUsersResponse.ok) throw new Error('Gagal mengambil email kandidat.')
+  const authUsersPayload = await authUsersResponse.json()
+  const emailsByUserId = new Map((authUsersPayload.users || []).map((user) => [user.id, user.email || '']))
   const { results: applications } = await env.DB.prepare(
     'SELECT candidate_id, passport_by_agency, visa_by_agency FROM applications',
   ).all()
@@ -118,6 +124,7 @@ async function listAllAdminDocuments(env, origin) {
   return json({
     candidates: candidates.map((candidate) => ({
       ...candidate,
+      email: emailsByUserId.get(candidate.id) || '',
       passport_by_agency: Boolean(applicationsByCandidate.get(candidate.candidate_id)?.passport_by_agency),
       visa_by_agency: Boolean(applicationsByCandidate.get(candidate.candidate_id)?.visa_by_agency),
       documents: documentsByCandidate.get(candidate.candidate_id) || [],
