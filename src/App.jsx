@@ -541,21 +541,40 @@ function useSession() {
 
 /* ---------------- Kandidat: ID + form ---------------- */
 function useCandidate(session) {
-  const [cand, setCand] = useState(null)
+  const [cand, setCand] = useState(() => {
+    if (!session) return null
+    try {
+      const cached = sessionStorage.getItem(`juara-candidate-${session.user.id}`)
+      return cached ? JSON.parse(cached) : null
+    } catch {
+      return null
+    }
+  })
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!session || !isConfigured) { setCand(null); return }
     let alive = true
     const startedAt = performance.now()
-    setLoading(true)
+    let cachedCandidate = null
+    try {
+      const cached = sessionStorage.getItem(`juara-candidate-${session.user.id}`)
+      cachedCandidate = cached ? JSON.parse(cached) : null
+    } catch {
+      cachedCandidate = null
+    }
+    if (cachedCandidate) setCand(cachedCandidate)
+    setLoading(!cachedCandidate)
     ;(async () => {
       const supabase = await getSupabase()
       if (!supabase) { if (alive) setLoading(false); return }
       const uid = session.user.id
       let { data } = await supabase.from('candidates').select('*').eq('id', uid).maybeSingle()
-      await holdTransition(startedAt, 650)
-      if (alive) { setCand(data); setLoading(false) }
+      if (data) {
+        try { sessionStorage.setItem(`juara-candidate-${uid}`, JSON.stringify(data)) } catch { /* cache is optional */ }
+      }
+      if (!cachedCandidate) await holdTransition(startedAt, 650)
+      if (alive) { setCand(data || cachedCandidate); setLoading(false) }
     })()
     return () => { alive = false }
   }, [session])
@@ -565,7 +584,13 @@ function useCandidate(session) {
     const supabase = await getSupabase()
     if (!supabase) return { error: { message: 'Supabase not configured' } }
     const { error } = await supabase.from('candidates').update(fields).eq('id', session.user.id)
-    if (!error) setCand((c) => ({ ...c, ...fields }))
+    if (!error) {
+      setCand((current) => {
+        const next = { ...current, ...fields }
+        try { sessionStorage.setItem(`juara-candidate-${session.user.id}`, JSON.stringify(next)) } catch { /* cache is optional */ }
+        return next
+      })
+    }
     return { error }
   }
 
@@ -1181,7 +1206,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
             </div>
           )}
 
-          {session && candLoading ? (
+          {session && candLoading && !cand ? (
             <div className="inline-transition" role="status" aria-label="Menyiapkan formulir pendaftaran">
               <span className="transition-kicker">Menyiapkan formulir</span>
               <span className="transition-line" aria-hidden="true" />
