@@ -53,12 +53,12 @@ td:last-child { width: 190px; }
 .modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(44,33,29,.48); z-index: 10; }
 .modal { width: min(680px, 100%); max-height: min(720px, 90vh); overflow: auto; padding: 24px; background: #fffaf0; border-radius: 18px; box-shadow: 0 20px 60px rgba(44,33,29,.25); }
 .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.modal-title-group { display: flex; align-items: center; gap: 18px; min-width: 0; }
 .modal-header h2 { margin: 6px 0 4px; }
 .modal-header p { color: #6d6258; }
-.download-all { margin-bottom: 8px; }
-.download-all { background: transparent; color: #b3261e; padding: 4px; }
+.download-all { margin-bottom: 0; background: transparent; color: #b3261e; padding: 0; width: 104px; height: 104px; flex: 0 0 104px; }
 .download-all:hover { background: transparent; color: #8d1d18; }
-.download-all img { width: 28px; height: 28px; display: block; }
+.download-all img { width: 100px; height: 100px; display: block; }
 .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .75s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 760px) { .layout { flex-direction: column; } .panel { width: 100%; } header { align-items: flex-start; } h1 { font-size: 30px; } }
