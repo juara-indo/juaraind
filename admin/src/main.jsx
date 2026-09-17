@@ -19,6 +19,7 @@ function Icon({ name, size = 18 }) {
     kk: <><path d="M16 20v-1.5a3.5 3.5 0 0 0-7 0V20M12.5 8.5a2.5 2.5 0 1 0-5 0 2.5 2.5 0 0 0 5 0ZM20 20v-1a3 3 0 0 0-2.2-2.9M15.5 6.2a2.5 2.5 0 0 1 0 4.8" /></>,
     ijazah: <><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h5" /><path d="m16 16 2 2 3-3" /></>,
     cv: <><path d="M6 3h9l3 3v15H6zM15 3v4h4M9 11h6M9 15h6M9 19h4" /></>,
+    pas_photo: <><circle cx="12" cy="8" r="3" /><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6" /></>,
     paspor: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.2 2.4 3.3 5.4 3.3 9s-1.1 6.6-3.3 9c-2.2-2.4-3.3-5.4-3.3-9S9.8 5.4 12 3Z" /></>,
     visa: <><path d="m3 12 18-6-6 18-3-8-9-4Z" /><path d="m12 16 4-4" /></>,
     pendukung: <><path d="M3 7h7l2 2h9v10H3z" /><path d="M3 7V5h7l2 2" /></>,

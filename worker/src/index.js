@@ -1,6 +1,6 @@
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
-const ALLOWED_DOCUMENT_TYPES = new Set(['ktp', 'kk', 'ijazah', 'cv', 'paspor', 'visa', 'pendukung'])
+const ALLOWED_DOCUMENT_TYPES = new Set(['ktp', 'kk', 'ijazah', 'cv', 'pas_photo', 'paspor', 'visa', 'pendukung'])
 const REQUIRED_DOCUMENT_TYPES = ['ktp', 'kk', 'ijazah', 'cv']
 const UPLOAD_RATE_WINDOW_MS = 10 * 60 * 1000
 const UPLOAD_RATE_LIMIT_PER_USER = 10
