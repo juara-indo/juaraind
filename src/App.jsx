@@ -21,6 +21,90 @@ const AvatarIcon = () => (
   </svg>
 )
 
+const landingTranslations = {
+  id: {
+    nav: ['Hotel Mitra', 'Alur', 'Galeri', 'Pendaftaran'],
+    signIn: 'Masuk',
+    account: 'Akun Saya',
+    heroTitle: <>Dari Nusantara ke <em>menara Istanbul</em> — karier Anda dimulai di sini.</>,
+    register: 'Daftar dengan Google',
+    complete: 'Lengkapi Pendaftaran',
+    hotels: 'Lihat Hotel Mitra ↓',
+    heroSide: 'Kami menempatkan talenta Indonesia terbaik di hotel-hotel bintang lima Turki — dengan kontrak resmi, izin kerja, dan pendampingan penuh dari Jakarta hingga Bosphorus.',
+    hotelKicker: 'Jaringan Penempatan',
+    hotelTitle: <>Hotel <em>berbintang lima</em> yang menanti Anda</>,
+    hotelDesc: 'Semua mitra penempatan kami terverifikasi dan terikat kontrak kerja resmi. Setiap posisi disiapkan khusus untuk kandidat Indonesia.',
+    processKicker: 'Alur 5 Langkah',
+    processTitle: <>Dari daftar <em>hingga terbang</em>, kami dampingi</>,
+    processDesc: 'Proses transparan dengan satu penanggung jawab per kandidat — Anda selalu tahu posisi Anda di setiap tahap.',
+    galleryKicker: 'Galeri',
+    galleryTitle: <>Seperti apa <em>dunia kerja</em> Anda nanti</>,
+    galleryDesc: 'Potret hotel, resor, dan standar layanan di kota-kota penempatan kami di Turki.',
+    footerDesc: 'Agensi penempatan ketenagakerjaan Indonesia → Turki. Berbasis di Jakarta dengan kantor perwakilan di Istanbul. Terikat prinsip penempatan yang etis, kontrak transparan, dan perlindungan pekerja migran.',
+    placement: 'Penempatan',
+    contact: 'Kontak',
+    candidateRegister: 'Daftar Kandidat',
+    processLink: 'Alur Pendaftaran',
+    hotelLink: 'Hotel Mitra',
+    stats: ['Kandidat ditempatkan sejak 2019', 'Hotel & resort mitra di Turki', 'Kota penempatan: Istanbul, Antalya, Bodrum, Izmir', 'Kelulusan visa kerja mitra'],
+    steps: ['Daftar & Dapatkan ID', 'Seleksi & Wawancara', 'Pelatihan & Sertifikasi', 'Dokumen & Visa Kerja', 'Berangkat & Mulai Karier'],
+  },
+  en: {
+    nav: ['Partner Hotels', 'Process', 'Gallery', 'Registration'],
+    signIn: 'Sign in',
+    account: 'My Account',
+    heroTitle: <>From the Nusantara to <em>Istanbul’s towers</em> — your career starts here.</>,
+    register: 'Register with Google',
+    complete: 'Complete Registration',
+    hotels: 'View Partner Hotels ↓',
+    heroSide: 'We place Indonesia’s best talent in five-star hotels across Türkiye — with official contracts, work permits, and full support from Jakarta to the Bosphorus.',
+    hotelKicker: 'Placement Network',
+    hotelTitle: <>Five-star <em>hotels</em> waiting for you</>,
+    hotelDesc: 'All our placement partners are verified and bound by official employment contracts. Every position is prepared specifically for Indonesian candidates.',
+    processKicker: '5-Step Process',
+    processTitle: <>From registration <em>to takeoff</em>, we guide you</>,
+    processDesc: 'A transparent process with one person responsible for each candidate — you always know where you stand.',
+    galleryKicker: 'Gallery',
+    galleryTitle: <>See your future <em>workplace</em></>,
+    galleryDesc: 'A look at the hotels, resorts, and service standards in our placement cities across Türkiye.',
+    footerDesc: 'An Indonesian → Türkiye employment placement agency. Based in Jakarta with a representative office in Istanbul. Built on ethical placement, transparent contracts, and migrant worker protection.',
+    placement: 'Placements',
+    contact: 'Contact',
+    candidateRegister: 'Candidate Registration',
+    processLink: 'Registration Process',
+    hotelLink: 'Partner Hotels',
+    stats: ['Candidates placed since 2019', 'Partner hotels & resorts in Türkiye', 'Placement cities: Istanbul, Antalya, Bodrum, Izmir', 'Partner work visa approval rate'],
+    steps: ['Register & Get Your ID', 'Selection & Interview', 'Training & Certification', 'Documents & Work Visa', 'Depart & Start Your Career'],
+  },
+  tr: {
+    nav: ['Partner Oteller', 'Süreç', 'Galeri', 'Başvuru'],
+    signIn: 'Giriş yap',
+    account: 'Hesabım',
+    heroTitle: <>Nusantara’dan <em>İstanbul kulelerine</em> — kariyeriniz burada başlıyor.</>,
+    register: 'Google ile Başvur',
+    complete: 'Başvuruyu Tamamla',
+    hotels: 'Partner Otelleri Gör ↓',
+    heroSide: 'Endonezya’nın en iyi yeteneklerini Türkiye’nin beş yıldızlı otellerine yerleştiriyoruz — Cakarta’dan Boğaz’a kadar resmi sözleşme, çalışma izni ve tam destek ile.',
+    hotelKicker: 'Yerleştirme Ağı',
+    hotelTitle: <>Sizi bekleyen <em>beş yıldızlı</em> oteller</>,
+    hotelDesc: 'Tüm yerleştirme ortaklarımız doğrulanmış ve resmi iş sözleşmeleriyle bağlıdır. Her pozisyon Endonezyalı adaylar için özel olarak hazırlanır.',
+    processKicker: '5 Adımlı Süreç',
+    processTitle: <>Başvurudan <em>uçuşa kadar</em> yanınızdayız</>,
+    processDesc: 'Her aday için tek sorumlu ile şeffaf bir süreç — her aşamada durumunuzu bilirsiniz.',
+    galleryKicker: 'Galeri',
+    galleryTitle: <>Gelecekteki <em>çalışma dünyanızı</em> görün</>,
+    galleryDesc: 'Türkiye’deki yerleştirme şehirlerimizdeki otel, tatil köyü ve hizmet standartlarından kareler.',
+    footerDesc: 'Endonezya → Türkiye iş yerleştirme ajansı. Cakarta merkezli, İstanbul’da temsilcilik ofisi bulunan ajansımız etik yerleştirme, şeffaf sözleşmeler ve göçmen işçi koruması ilkeleriyle çalışır.',
+    placement: 'Yerleştirmeler',
+    contact: 'İletişim',
+    candidateRegister: 'Aday Başvurusu',
+    processLink: 'Başvuru Süreci',
+    hotelLink: 'Partner Oteller',
+    stats: ['2019’dan beri yerleştirilen adaylar', 'Türkiye’deki partner otel ve tatil köyleri', 'Yerleştirme şehirleri: İstanbul, Antalya, Bodrum, İzmir', 'Partner çalışma vizesi onay oranı'],
+    steps: ['Başvurun ve Kimliğinizi Alın', 'Seçim ve Mülakat', 'Eğitim ve Sertifikasyon', 'Belgeler ve Çalışma Vizesi', 'Yola Çıkın ve Kariyerinize Başlayın'],
+  },
+}
+
 const DocumentIcon = ({ type }) => {
   const detail = {
     ktp: <><rect x="4" y="6" width="16" height="12" rx="2" /><circle cx="9" cy="11" r="1.8" /><path d="M13 10h4M13 13h4" /></>,
@@ -513,7 +597,8 @@ function Reveal({ children, className = '', delay = 0, as: Tag = 'div' }) {
 }
 
 /* ---------------- Navbar ---------------- */
-function Nav({ session, onLogin }) {
+function Nav({ session, onLogin, language, setLanguage }) {
+  const copy = landingTranslations[language]
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
@@ -527,20 +612,29 @@ function Nav({ session, onLogin }) {
         <img className="brand-logo" src="/images/logojuara.svg" alt="Juara" />
       </a>
       <ul className={`nav-links ${session ? 'nav-links-hidden' : ''}`}>
-        <li><a href="#hotel" onClick={(e) => { e.preventDefault(); go('hotel') }}>Hotel Mitra</a></li>
-        <li><a href="#proses" onClick={(e) => { e.preventDefault(); go('proses') }}>Alur</a></li>
-        <li><a href="#galeri" onClick={(e) => { e.preventDefault(); go('galeri') }}>Galeri</a></li>
-        <li><a href="#daftar" onClick={(e) => { e.preventDefault(); go('daftar') }}>Pendaftaran</a></li>
+        <li><a href="#hotel" onClick={(e) => { e.preventDefault(); go('hotel') }}>{copy.nav[0]}</a></li>
+        <li><a href="#proses" onClick={(e) => { e.preventDefault(); go('proses') }}>{copy.nav[1]}</a></li>
+        <li><a href="#galeri" onClick={(e) => { e.preventDefault(); go('galeri') }}>{copy.nav[2]}</a></li>
+        <li><a href="#daftar" onClick={(e) => { e.preventDefault(); go('daftar') }}>{copy.nav[3]}</a></li>
       </ul>
+      <label className="language-select">
+        <span className="sr-only">Bahasa</span>
+        <select value={language} onChange={(event) => setLanguage(event.target.value)} aria-label="Pilih bahasa">
+          <option value="id">ID</option>
+          <option value="en">EN</option>
+          <option value="tr">TR</option>
+        </select>
+      </label>
       <button className="nav-cta" onClick={() => (session ? go('daftar') : onLogin())}>
-        {session ? 'Akun Saya' : (<><GoogleIcon size={16} /> Masuk</>)}
+        {session ? copy.account : (<><GoogleIcon size={16} /> {copy.signIn}</>)}
       </button>
     </header>
   )
 }
 
 /* ---------------- Hero: layar besar ---------------- */
-function Hero({ session, onLogin }) {
+function Hero({ session, onLogin, language }) {
+  const copy = landingTranslations[language]
   const go = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   return (
     <section className="hero" id="top">
@@ -553,23 +647,22 @@ function Hero({ session, onLogin }) {
       <div className="hero-inner">
         <div>
           <h1 className="hero-title">
-            Dari Nusantara ke <em>menara Istanbul</em> — karier Anda dimulai di sini.
+            {copy.heroTitle}
           </h1>
           <div className="hero-row">
             <button className="btn-primary" onClick={() => (session ? go('daftar') : onLogin())}>
-              {session ? 'Lengkapi Pendaftaran' : 'Daftar dengan Google'}
+              {session ? copy.complete : copy.register}
             </button>
-            <button className="btn-ghost" onClick={() => go('hotel')}>Lihat Hotel Mitra ↓</button>
+            <button className="btn-ghost" onClick={() => go('hotel')}>{copy.hotels}</button>
           </div>
         </div>
         <p className="hero-side">
-          Kami menempatkan talenta Indonesia terbaik di hotel-hotel bintang lima Turki —
-          dengan kontrak resmi, izin kerja, dan pendampingan penuh dari Jakarta hingga Bosphorus.
+          {copy.heroSide}
         </p>
       </div>
       <div className="hero-stats">
-        {STATS.map((s) => (
-          <div className="hero-stat" key={s.label}><b>{s.value}</b><span>{s.label}</span></div>
+        {STATS.map((s, i) => (
+          <div className="hero-stat" key={s.label}><b>{s.value}</b><span>{copy.stats[i]}</span></div>
         ))}
       </div>
     </section>
@@ -589,17 +682,17 @@ function Marquee() {
 }
 
 /* ---------------- Hotels ---------------- */
-function Hotels() {
+function Hotels({ language }) {
+  const copy = landingTranslations[language]
   return (
     <section className="section hotels" id="hotel">
       <Reveal className="section-head">
         <div>
-          <div className="sec-kicker">Jaringan Penempatan</div>
-          <h2 className="sec-title">Hotel <em>berbintang lima</em> yang menanti Anda</h2>
+          <div className="sec-kicker">{copy.hotelKicker}</div>
+          <h2 className="sec-title">{copy.hotelTitle}</h2>
         </div>
         <p className="sec-desc">
-          Semua mitra penempatan kami terverifikasi dan terikat kontrak kerja resmi.
-          Setiap posisi disiapkan khusus untuk kandidat Indonesia.
+          {copy.hotelDesc}
         </p>
       </Reveal>
       <div className="hotel-grid">
@@ -623,23 +716,24 @@ function Hotels() {
 }
 
 /* ---------------- Timeline proses ---------------- */
-function Process() {
+function Process({ language }) {
+  const copy = landingTranslations[language]
   return (
     <section className="section process" id="proses">
       <Reveal className="section-head">
         <div>
-          <div className="sec-kicker">Alur 5 Langkah</div>
-          <h2 className="sec-title">Dari daftar <em>hingga terbang</em>, kami dampingi</h2>
+          <div className="sec-kicker">{copy.processKicker}</div>
+          <h2 className="sec-title">{copy.processTitle}</h2>
         </div>
         <p className="sec-desc">
-          Proses transparan dengan satu penanggung jawab per kandidat — Anda selalu tahu posisi Anda di setiap tahap.
+          {copy.processDesc}
         </p>
       </Reveal>
       <div className="tl">
         {STEPS.map((s, i) => (
           <Reveal className="tl-item" key={s.no} delay={i * 80}>
             <div className="tl-no">{s.no}</div>
-            <div className="tl-title">{s.title}</div>
+            <div className="tl-title">{copy.steps[i]}</div>
             <p className="tl-desc">{s.desc}</p>
           </Reveal>
         ))}
@@ -649,16 +743,17 @@ function Process() {
 }
 
 /* ---------------- Galeri kolase ---------------- */
-function Gallery() {
+function Gallery({ language }) {
+  const copy = landingTranslations[language]
   return (
     <section className="section" id="galeri">
       <Reveal className="section-head">
         <div>
-          <div className="sec-kicker">Galeri</div>
-          <h2 className="sec-title">Seperti apa <em>dunia kerja</em> Anda nanti</h2>
+          <div className="sec-kicker">{copy.galleryKicker}</div>
+          <h2 className="sec-title">{copy.galleryTitle}</h2>
         </div>
         <p className="sec-desc">
-          Potret hotel, resor, dan standar layanan di kota-kota penempatan kami di Turki.
+          {copy.galleryDesc}
         </p>
       </Reveal>
       <div className="collage">
@@ -1207,30 +1302,27 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
 }
 
 /* ---------------- Footer ---------------- */
-function Footer() {
+function Footer({ language }) {
+  const copy = landingTranslations[language]
   return (
     <footer>
       <div className="foot-grid">
         <div>
           <div className="foot-brand">PT. JUARA</div>
-          <p className="foot-desc">
-            Agensi penempatan ketenagakerjaan Indonesia → Turki. Berbasis di Jakarta dengan kantor
-            perwakilan di Istanbul. Terikat prinsip penempatan yang etis, kontrak transparan, dan
-            perlindungan pekerja migran.
-          </p>
+          <p className="foot-desc">{copy.footerDesc}</p>
         </div>
         <div>
-          <h4>Penempatan</h4>
+          <h4>{copy.placement}</h4>
           <ul>
             <li>Istanbul</li><li>Antalya</li><li>Bodrum</li><li>Izmir</li><li>Cappadocia</li>
           </ul>
         </div>
         <div>
-          <h4>Kontak</h4>
+          <h4>{copy.contact}</h4>
           <ul>
-            <li><a href="#daftar">Daftar Kandidat</a></li>
-            <li><a href="#hotel">Hotel Mitra</a></li>
-            <li><a href="#proses">Alur Pendaftaran</a></li>
+            <li><a href="#daftar">{copy.candidateRegister}</a></li>
+            <li><a href="#hotel">{copy.hotelLink}</a></li>
+            <li><a href="#proses">{copy.processLink}</a></li>
             <li>admin@juaraind.com</li>
           </ul>
         </div>
@@ -1303,17 +1395,18 @@ export default function App() {
   if (maintenanceMode) return <MaintenancePage />
 
   const { session, loading, signInWithGoogle, signOut } = useSession()
+  const [language, setLanguage] = useState('id')
   return (
     <>
       <ScrollIndicator />
-      {!loading && !session && <Nav session={session} onLogin={signInWithGoogle} />}
+      {!loading && !session && <Nav session={session} onLogin={signInWithGoogle} language={language} setLanguage={setLanguage} />}
       {!loading && !session && (
         <>
-          <Hero session={session} onLogin={signInWithGoogle} />
+          <Hero session={session} onLogin={signInWithGoogle} language={language} />
           <Marquee />
-          <Hotels />
-          <Process />
-          <Gallery />
+          <Hotels language={language} />
+          <Process language={language} />
+          <Gallery language={language} />
         </>
       )}
       <AuthSection
@@ -1322,7 +1415,7 @@ export default function App() {
         signInWithGoogle={signInWithGoogle}
         signOut={signOut}
       />
-      {!loading && !session && <Footer />}
+      {!loading && !session && <Footer language={language} />}
     </>
   )
 }

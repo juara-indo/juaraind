@@ -129,6 +129,14 @@ a { color: inherit; }
   background: rgba(20, 18, 16, 0.3);
   border-color: rgba(242, 234, 211, 0.75);
 }
+.language-select { display: inline-flex; margin-left: auto; margin-right: 12px; }
+.language-select select {
+  appearance: none; border: 1px solid rgba(242, 234, 211, 0.46); border-radius: 999px;
+  background: rgba(20, 18, 16, 0.36); color: var(--bg); padding: 10px 28px 10px 12px;
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; cursor: pointer;
+}
+.language-select select option { color: var(--ink); background: var(--paper); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 900px) { .nav-links { display: none; } .nav { padding: 16px 20px; } }
 
 /* ---------- HERO: layar besar full-bleed ---------- */
