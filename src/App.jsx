@@ -393,10 +393,10 @@ const documentTypes = [
   { id: 'kk', label: 'KK', hint: 'Kartu keluarga' },
   { id: 'ijazah', label: 'Ijazah terakhir', hint: 'Ijazah pendidikan terakhir' },
   { id: 'cv', label: 'CV', hint: 'Curriculum vitae terbaru' },
+  { id: 'pendukung', label: 'Dokumen pendukung', hint: 'Sertifikat atau dokumen lainnya' },
   { id: 'pas_photo', label: 'UPLOAD PAS PHOTO', hint: 'Foto formal terbaru' },
   { id: 'paspor', label: 'Paspor', hint: 'Halaman identitas paspor' },
   { id: 'visa', label: 'Visa', hint: 'Dokumen visa atau izin tinggal' },
-  { id: 'pendukung', label: 'Dokumen pendukung', hint: 'Sertifikat atau dokumen lainnya' },
 ]
 
 function useDocuments(session) {
@@ -1126,7 +1126,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     const rejected = !accepted && !files.length && hasRejectedDocument(documentType.id)
                     const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
                     return (
-                      <div className={`document-slot ${rejected ? 'is-rejected' : ''}`} key={documentType.id}>
+                      <div className={`document-slot ${rejected ? 'is-rejected' : ''} ${documentType.id === 'paspor' ? 'is-special-start' : ''}`} key={documentType.id}>
                         <div className="document-slot-info">
                           <span className="document-number">{String(index + 1).padStart(2, '0')}</span>
                           <DocumentIcon type={documentType.id} />
