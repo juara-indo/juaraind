@@ -42,9 +42,13 @@ function adminEmails(env) {
   return new Set((env.ADMIN_EMAILS || '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean))
 }
 
+function isAdminUser(user, env) {
+  return adminEmails(env).has(String(user?.email || '').toLowerCase())
+}
+
 async function authenticateAdmin(request, env) {
   const user = await authenticate(request, env)
-  if (!user || !adminEmails(env).has(String(user.email || '').toLowerCase())) return null
+  if (!user || !isAdminUser(user, env)) return null
   return user
 }
 
@@ -492,6 +496,11 @@ export default {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return listAdminCandidates(request, env, origin)
       }
+      if (url.pathname === '/account/role' && request.method === 'GET') {
+        if (isAdminUser(user, env)) return json({ role: 'admin' }, 200, origin)
+        const candidate = await candidateFor(user, authToken(request), env)
+        return json({ role: candidate ? 'candidate' : 'unassigned' }, 200, origin)
+      }
       if (url.pathname === '/admin/documents' && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return listAllAdminDocuments(env, origin)
@@ -521,20 +530,24 @@ export default {
         return normalizeCandidateStorage(decodeURIComponent(normalizeStorageMatch[1]), env, origin)
       }
       if (url.pathname === '/documents' && request.method === 'GET') {
+        if (isAdminUser(user, env)) return json({ error: 'Akun admin tidak dapat digunakan sebagai peserta.' }, 403, origin)
         return listDocuments(user.id, env, origin)
       }
       if (url.pathname === '/documents' && request.method === 'POST') {
+        if (isAdminUser(user, env)) return json({ error: 'Akun admin tidak dapat digunakan sebagai peserta.' }, 403, origin)
         const rateLimitResponse = await enforceUploadRateLimit(request, user, env, origin)
         if (rateLimitResponse) return rateLimitResponse
         const token = authToken(request)
         return uploadDocuments(request, user, token, env, origin)
       }
       if (url.pathname === '/applications' && request.method === 'POST') {
+        if (isAdminUser(user, env)) return json({ error: 'Akun admin tidak dapat digunakan sebagai peserta.' }, 403, origin)
         const token = authToken(request)
         return submitApplication(request, user, token, env, origin)
       }
 
       const match = url.pathname.match(/^\/documents\/([^/]+)$/)
+      if (match && isAdminUser(user, env)) return json({ error: 'Akun admin tidak dapat digunakan sebagai peserta.' }, 403, origin)
       if (match && request.method === 'GET') return downloadDocument(request, user, match[1], env, origin)
       if (match && request.method === 'DELETE') return deleteDocument(user, match[1], env, origin)
       return json({ error: 'Endpoint tidak ditemukan.' }, 404, origin)

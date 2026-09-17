@@ -43,12 +43,34 @@ function App() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    const modalOpen = Boolean(selectedCandidate || selectedBiodata || selectedCollectiveCandidate || selectedPreview)
+    if (!modalOpen) return undefined
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      if (selectedPreview) closePreview()
+      else if (selectedCandidate) setSelectedCandidate(null)
+      else if (selectedBiodata) setSelectedBiodata(null)
+      else if (selectedCollectiveCandidate && selectedCollectiveCandidate.candidate_id !== collectiveConvertingCandidateId) setSelectedCollectiveCandidate(null)
+    }
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [selectedCandidate, selectedBiodata, selectedCollectiveCandidate, selectedPreview, collectiveConvertingCandidateId])
+
+  useEffect(() => {
     let mounted = true
     if (!isConfigured) { setLoading(false); return undefined }
     const supabase = getSupabase()
     if (!supabase) { setLoading(false); return undefined }
     const loadSession = async () => {
-      const { data } = await supabase.auth.getSession()
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession()
+      const { data } = refreshError
+        ? await supabase.auth.getSession()
+        : refreshed
       if (mounted) { setSession(data.session); setLoading(false) }
     }
     loadSession()
