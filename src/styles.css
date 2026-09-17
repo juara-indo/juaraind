@@ -638,7 +638,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
   background: var(--night);
   border: 0;
   border-radius: 4px 16px 16px 16px;
-  box-shadow: 8px 8px 0 rgba(179,38,30,.12);
+  box-shadow: none;
 }
 .candidate-mode .candidate-tabs button {
   min-height: 48px;
@@ -649,7 +649,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .candidate-mode .candidate-tabs button.is-active {
   color: var(--night);
   background: var(--gold);
-  box-shadow: 3px 3px 0 rgba(242,234,211,.14);
+  box-shadow: none;
 }
 .candidate-mode .candidate-tabs button.is-active span { color: var(--crimson-deep); }
 .candidate-mode .id-card {
