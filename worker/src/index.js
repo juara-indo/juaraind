@@ -110,14 +110,15 @@ async function listAllAdminDocuments(env, origin) {
   }
 
   async function listAdminFinance(env, origin) {
+    const { results: applications } = await env.DB.prepare(
+      'SELECT candidate_id, passport_by_agency, visa_by_agency FROM applications WHERE passport_by_agency = 1 OR visa_by_agency = 1',
+    ).all()
+    if (!applications.length) return json({ candidates: [] }, 200, origin)
     const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name&order=created_at.desc&limit=100`, {
       headers: supabaseAdminHeaders(env),
     })
     if (!candidateResponse.ok) throw new Error('Gagal mengambil daftar kandidat.')
     const candidates = await candidateResponse.json()
-    const { results: applications } = await env.DB.prepare(
-      'SELECT candidate_id, passport_by_agency, visa_by_agency FROM applications WHERE passport_by_agency = 1 OR visa_by_agency = 1',
-    ).all()
     const { results: accounts } = await env.DB.prepare('SELECT * FROM candidate_finance').all()
     const { results: payments } = await env.DB.prepare(
       'SELECT id, candidate_id, amount, payment_date, note FROM candidate_finance_payments ORDER BY payment_date DESC, created_at DESC',
