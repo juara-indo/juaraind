@@ -47,6 +47,9 @@ input { flex: 1; min-width: 0; border: 1px solid #d6c9ae; border-radius: 999px; 
 .doc-label { display: flex !important; align-items: center; gap: 10px; }
 .document-icon { display: inline-flex; color: #b3261e; }
 .preview-modal { width: min(900px, 100%); }
+.preview-loading-backdrop { z-index: 20; }
+.preview-loading { display: flex; align-items: center; gap: 12px; padding: 18px 22px; color: #2c211d; background: #fffaf0; border-radius: 14px; box-shadow: 0 20px 60px rgba(44,33,29,.25); }
+.preview-spinner { width: 22px; height: 22px; border: 3px solid #ded2bb; border-top-color: #b3261e; border-radius: 50%; animation: spin .75s linear infinite; }
 .document-preview-frame { display: block; width: 100%; height: min(70vh, 720px); border: 1px solid #ded2bb; border-radius: 10px; background: #fff; }
 .document-preview-image { display: block; max-width: 100%; max-height: 70vh; margin: 0 auto; object-fit: contain; border-radius: 10px; }
 .icon-button { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 34px; padding: 7px; border-radius: 10px; }
