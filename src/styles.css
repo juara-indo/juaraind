@@ -121,7 +121,7 @@ a { color: inherit; }
   background: rgba(20, 18, 16, 0.36); color: var(--bg);
   border: 1px solid rgba(242, 234, 211, 0.46); border-radius: 999px;
   padding: 11px 22px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
-  display: inline-flex; align-items: center; gap: 8px;
+  width: 176px; justify-content: center; display: inline-flex; align-items: center; gap: 8px;
   transition: transform 0.25s var(--ease), background 0.25s, border-color 0.25s;
 }
 .nav-cta:hover {
@@ -133,7 +133,7 @@ a { color: inherit; }
 .language-select select {
   appearance: none; border: 1px solid rgba(242, 234, 211, 0.46); border-radius: 999px;
   background: rgba(20, 18, 16, 0.36); color: var(--bg); padding: 10px 14px;
-  text-align: center;
+  width: 168px; text-align: center;
   font-size: 12px; font-weight: 700; letter-spacing: .08em; cursor: pointer;
 }
 .language-select select:focus,
