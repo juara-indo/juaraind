@@ -1008,7 +1008,12 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
     }))
   }
 
-  const handleTurnstileSuccess = async (token) => {
+  const handleTurnstileSuccess = (token) => {
+    setErr('')
+    setTurnstileToken(token)
+  }
+
+  const handleBatchUpload = async () => {
     const files = []
     const documentTypes = []
     Object.entries(selectedDocuments).forEach(([documentType, selected]) => {
@@ -1018,12 +1023,15 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
         documentTypes.push(documentType)
       })
     })
-    setTurnstileToken(token)
     if (!files.length) return
     setErr('')
+    if (!turnstileToken) {
+      setErr('Selesaikan verifikasi keamanan terlebih dahulu.')
+      return
+    }
     setDocumentBusy(true)
     try {
-      await upload(files, token, documentTypes)
+      await upload(files, turnstileToken, documentTypes)
       setSelectedDocuments({})
       setTurnstileToken('')
     } catch (error) {
@@ -1385,6 +1393,11 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                       onError={() => setTurnstileToken('')}
                     />
                   </div>
+                )}
+                {hasPendingDocuments && turnstileToken && (
+                <button className="document-submit" type="button" onClick={handleBatchUpload} disabled={documentBusy || !documentsApiUrl}>
+                  {documentBusy ? 'Mengunggah dokumen…' : 'Unggah semua dokumen'}
+                </button>
                 )}
                 <div className="document-apply">
                   <p className="document-note">Dokumen pendukung bersifat opsional. KTP, KK, ijazah, dan CV wajib tersedia; Paspor dan Visa dapat digantikan dengan pilihan kolektif agency.</p>
