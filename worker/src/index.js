@@ -554,6 +554,70 @@ async function normalizeCandidateStorage(candidateId, env, origin) {
   return json({ candidate_id: candidateId, moved }, 200, origin)
 }
 
+async function listAdminFinanceEndpoint(env, origin) {
+  const { results: applications } = await env.DB.prepare(
+    'SELECT candidate_id, passport_by_agency, visa_by_agency FROM applications WHERE passport_by_agency = 1 OR visa_by_agency = 1',
+  ).all()
+  if (!applications.length) return json({ candidates: [] }, 200, origin)
+  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name&order=created_at.desc&limit=100`, {
+    headers: supabaseAdminHeaders(env),
+  })
+  if (!candidateResponse.ok) throw new Error('Gagal mengambil daftar kandidat.')
+  const candidates = await candidateResponse.json()
+  const { results: accounts } = await env.DB.prepare('SELECT * FROM candidate_finance').all()
+  const { results: payments } = await env.DB.prepare(
+    'SELECT id, candidate_id, amount, payment_date, note FROM candidate_finance_payments ORDER BY payment_date DESC, created_at DESC',
+  ).all()
+  const applicationByCandidate = new Map(applications.map((item) => [item.candidate_id, item]))
+  const accountByCandidate = new Map(accounts.map((item) => [item.candidate_id, item]))
+  const paymentsByCandidate = new Map()
+  for (const payment of payments) {
+    const list = paymentsByCandidate.get(payment.candidate_id) || []
+    list.push(payment)
+    paymentsByCandidate.set(payment.candidate_id, list)
+  }
+  return json({
+    candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
+      const application = applicationByCandidate.get(candidate.candidate_id)
+      const account = accountByCandidate.get(candidate.candidate_id) || { passport_fee: 0, visa_fee: 0, departure_fee: 20000000 }
+      return {
+        ...candidate,
+        passport_by_agency: Boolean(application.passport_by_agency),
+        visa_by_agency: Boolean(application.visa_by_agency),
+        passport_fee: Number(account.passport_fee),
+        visa_fee: Number(account.visa_fee),
+        departure_fee: Number(account.departure_fee),
+        payments: paymentsByCandidate.get(candidate.candidate_id) || [],
+      }
+    }),
+  }, 200, origin)
+}
+
+async function updateAdminFinanceEndpoint(request, candidateId, env, origin) {
+  const body = await request.json().catch(() => null)
+  const values = [Number(body?.passport_fee), Number(body?.visa_fee), Number(body?.departure_fee)]
+  if (!values.every((value) => Number.isInteger(value) && value >= 0)) return json({ error: 'Nominal biaya harus berupa angka bulat yang valid.' }, 400, origin)
+  await env.DB.prepare(
+    `INSERT INTO candidate_finance (candidate_id, passport_fee, visa_fee, departure_fee, updated_at)
+     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(candidate_id) DO UPDATE SET passport_fee = excluded.passport_fee,
+     visa_fee = excluded.visa_fee, departure_fee = excluded.departure_fee, updated_at = CURRENT_TIMESTAMP`,
+  ).bind(candidateId, ...values).run()
+  return json({ ok: true }, 200, origin)
+}
+
+async function addAdminFinancePaymentEndpoint(request, candidateId, env, origin) {
+  const body = await request.json().catch(() => null)
+  const amount = Number(body?.amount)
+  const paymentDate = String(body?.payment_date || '')
+  const note = String(body?.note || '').trim().slice(0, 240)
+  if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(paymentDate)) return json({ error: 'Nominal dan tanggal pembayaran wajib valid.' }, 400, origin)
+  await env.DB.prepare(
+    'INSERT INTO candidate_finance_payments (id, candidate_id, amount, payment_date, note) VALUES (?, ?, ?, ?, ?)',
+  ).bind(crypto.randomUUID(), candidateId, amount, paymentDate, note).run()
+  return json({ ok: true }, 201, origin)
+}
+
 export default {
   async fetch(request, env) {
     const origin = requestOrigin(request, env)
@@ -579,16 +643,16 @@ export default {
       }
       if (url.pathname === '/admin/finance' && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
-        return listAdminFinance(env, origin)
+        return listAdminFinanceEndpoint(env, origin)
       }
       const financeMatch = url.pathname.match(/^\/admin\/finance\/([^/]+)$/)
       if (financeMatch && request.method === 'PATCH') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
-        return updateAdminFinance(request, decodeURIComponent(financeMatch[1]), env, origin)
+        return updateAdminFinanceEndpoint(request, decodeURIComponent(financeMatch[1]), env, origin)
       }
       if (financeMatch && request.method === 'POST') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
-        return addAdminFinancePayment(request, decodeURIComponent(financeMatch[1]), env, origin)
+        return addAdminFinancePaymentEndpoint(request, decodeURIComponent(financeMatch[1]), env, origin)
       }
       const adminCollectiveMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/collective$/)
       if (adminCollectiveMatch && request.method === 'POST') {
