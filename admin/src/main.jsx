@@ -32,6 +32,7 @@ function App() {
   const [candidates, setCandidates] = useState([])
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [selectedBiodata, setSelectedBiodata] = useState(null)
+  const [collectiveFiles, setCollectiveFiles] = useState({})
   const [downloadingCandidateId, setDownloadingCandidateId] = useState(null)
   const [error, setError] = useState('')
 
@@ -57,9 +58,22 @@ function App() {
     }
   }, [])
 
+  const authHeaders = () => ({ Authorization: `Bearer ${session.access_token}` })
+
   const request = async (path) => {
     const response = await fetch(`${apiUrl}${path}`, {
       headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    const payload = await response.json().catch(() => null)
+    if (!response.ok) throw new Error(payload?.error || 'Permintaan gagal.')
+    return payload
+  }
+
+  const requestForm = async (path, formData) => {
+    const response = await fetch(`${apiUrl}${path}`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
     })
     const payload = await response.json().catch(() => null)
     if (!response.ok) throw new Error(payload?.error || 'Permintaan gagal.')
@@ -108,6 +122,35 @@ function App() {
         usedNames.set(baseName, count)
         folder.file(`${baseName}${count > 1 ? `-${count}` : ''}${extension}`, await response.arrayBuffer())
       }
+
+      const collectiveTypes = (candidate) => [
+        ...(candidate.passport_by_agency ? ['paspor'] : []),
+        ...(candidate.visa_by_agency ? ['visa'] : []),
+      ]
+      const handleCollectiveSelection = (candidate, event) => {
+        const types = collectiveTypes(candidate)
+        const files = Array.from(event.target.files || []).slice(0, types.length)
+        setCollectiveFiles((current) => ({
+          ...current,
+          [candidate.candidate_id]: Object.fromEntries(files.map((file, index) => [types[index], file])),
+        }))
+        event.target.value = ''
+      }
+      const convertCollective = async (candidate) => {
+        const files = collectiveFiles[candidate.candidate_id] || {}
+        const types = collectiveTypes(candidate)
+        const formData = new FormData()
+        types.forEach((type) => {
+          formData.append('files', files[type])
+          formData.append('document_types', type)
+        })
+        try {
+          setError('')
+          await requestForm(`/admin/candidates/${encodeURIComponent(candidate.candidate_id)}/collective`, formData)
+          setCollectiveFiles((current) => ({ ...current, [candidate.candidate_id]: {} }))
+          await loadCandidates()
+        } catch (requestError) { setError(requestError.message) }
+      }
       const blob = await zip.generateAsync({ type: 'blob' })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
@@ -128,7 +171,7 @@ function App() {
     <main>
       <header><div><span className="eyebrow">PT. JUARA · ADMIN</span><h1>Dokumen kandidat</h1><p className="candidate-count">{candidates.length} peserta</p></div><div className="header-actions"><button className="icon-button reload-button" aria-label="Muat ulang peserta" title="Muat ulang peserta" onClick={loadCandidates}><img src="/reload.svg" alt="" /></button><button onClick={() => getSupabase()?.auth.signOut()}>Keluar</button></div></header>
       {error && <p className="error">{error}</p>}
-      <section className="panel"><div className="table-wrap"><table><thead><tr><th>No</th><th>Kandidat</th><th>Biodata</th><th>Dokumen</th></tr></thead><tbody>{candidates.map((candidate, index) => { const biodataComplete = isBiodataComplete(candidate); return <tr key={candidate.candidate_id}><td>{index + 1}</td><td className="candidate-cell"><span className="candidate-name">{candidate.full_name || 'Nama belum diisi'}</span><strong className="candidate-id">{candidate.candidate_id}</strong></td><td><button className={`documents-button biodata-button ${biodataComplete ? 'is-complete' : 'is-incomplete'}`} title={biodataComplete ? 'Biodata lengkap' : 'Biodata belum lengkap'} onClick={() => setSelectedBiodata(candidate)}>Biodata</button></td><td><button className="documents-button" onClick={() => setSelectedCandidate(candidate)}>Lihat dokumen <span className="document-count">({candidate.documents.length})</span></button></td></tr> })}</tbody></table></div>{!candidates.length && <div className="empty">Belum ada peserta.</div>}</section>
+      <section className="panel"><div className="table-wrap"><table><thead><tr><th>No</th><th>Kandidat</th><th>Biodata</th><th>Kolektif</th><th>Dokumen</th></tr></thead><tbody>{candidates.map((candidate, index) => { const biodataComplete = isBiodataComplete(candidate); const types = collectiveTypes(candidate); const files = collectiveFiles[candidate.candidate_id] || {}; const collectiveReady = types.length > 0 && types.every((type) => files[type]); const collectiveDone = types.length > 0 && types.every((type) => candidate.documents.some((document) => document.document_type === type)); return <tr key={candidate.candidate_id}><td>{index + 1}</td><td className="candidate-cell"><span className="candidate-name">{candidate.full_name || 'Nama belum diisi'}</span><strong className="candidate-id">{candidate.candidate_id}</strong></td><td><button className={`documents-button biodata-button ${biodataComplete ? 'is-complete' : 'is-incomplete'}`} title={biodataComplete ? 'Biodata lengkap' : 'Biodata belum lengkap'} onClick={() => setSelectedBiodata(candidate)}>Biodata</button></td><td>{!types.length || collectiveDone ? <button className="documents-button collective-button" disabled>Tidak aktif</button> : <><input id={`collective-${candidate.candidate_id}`} className="file-input" type="file" accept=".pdf,.jpg,.jpeg,.png" multiple onChange={(event) => handleCollectiveSelection(candidate, event)} /><button className={`documents-button collective-button ${collectiveReady ? 'is-ready' : ''}`} onClick={() => collectiveReady ? convertCollective(candidate) : document.getElementById(`collective-${candidate.candidate_id}`)?.click()}>{collectiveReady ? 'Convert' : 'Upload'}</button></>}</td><td><button className="documents-button" onClick={() => setSelectedCandidate(candidate)}>Lihat dokumen <span className="document-count">({candidate.documents.length})</span></button></td></tr> })}</tbody></table></div>{!candidates.length && <div className="empty">Belum ada peserta.</div>}</section>
       {selectedBiodata && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedBiodata(null)}><section className="modal biodata-modal" role="dialog" aria-modal="true" aria-labelledby="biodata-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div><span className="eyebrow">BIODATA PESERTA</span><h2 id="biodata-title">{selectedBiodata.full_name || 'Nama belum diisi'}</h2><p>{selectedBiodata.candidate_id}</p></div><button className="icon-button" aria-label="Tutup biodata" title="Tutup" onClick={() => setSelectedBiodata(null)}><Icon name="close" /></button></div><div className="biodata-grid"><div><span>Nama lengkap</span><strong>{selectedBiodata.full_name || '-'}</strong></div><div><span>Jenis kelamin</span><strong>{selectedBiodata.gender || '-'}</strong></div><div><span>Tempat lahir</span><strong>{selectedBiodata.birth_place || '-'}</strong></div><div><span>Tanggal lahir</span><strong>{selectedBiodata.birth_date ? new Date(`${selectedBiodata.birth_date}T00:00:00`).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'}</strong></div><div><span>Nomor WhatsApp</span><strong>{selectedBiodata.phone || '-'}</strong></div><div><span>Kode pos</span><strong>{selectedBiodata.postal_code || '-'}</strong></div><div className="biodata-full"><span>Alamat</span><strong>{selectedBiodata.address || '-'}</strong></div><div><span>Provinsi</span><strong>{selectedBiodata.province || '-'}</strong></div><div><span>Kota / kabupaten</span><strong>{selectedBiodata.city || '-'}</strong></div><div className="biodata-full"><span>Pengalaman</span><strong>{selectedBiodata.experience || '-'}</strong></div></div></section></div>}
       {selectedCandidate && <div className="modal-backdrop" role="presentation" onClick={() => setSelectedCandidate(null)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="documents-title" onClick={(event) => event.stopPropagation()}><div className="modal-header"><div className="modal-title-group"><div><span className="eyebrow">DOKUMEN PESERTA</span><h2 id="documents-title">{selectedCandidate.full_name || 'Nama belum diisi'}</h2><p>{selectedCandidate.candidate_id}</p></div>{selectedCandidate.documents.length > 0 && <button className="download-all icon-button" aria-label="Download semua dokumen" title="Download semua dokumen" disabled={downloadingCandidateId === selectedCandidate.candidate_id} onClick={() => downloadAll(selectedCandidate)}>{downloadingCandidateId === selectedCandidate.candidate_id ? <span className="spinner" aria-label="Menyiapkan download" /> : <img src="/download-all.svg" alt="" />}</button>}</div><button className="icon-button" aria-label="Tutup detail dokumen" title="Tutup" onClick={() => setSelectedCandidate(null)}><Icon name="close" /></button></div><div className="docs">{selectedCandidate.documents.map((item) => <div className="doc" key={item.id}><div className="doc-label"><span className="document-icon"><Icon name={item.document_type} /></span><strong>{item.document_type.toUpperCase()}</strong></div><button className="icon-button" aria-label={`Download ${item.document_type}`} title={`Download ${item.document_type}`} onClick={() => download(item)}><Icon name="download" /></button></div>)}</div>{!selectedCandidate.documents.length && <div className="empty">Belum ada dokumen.</div>}</section></div>}
     </main>

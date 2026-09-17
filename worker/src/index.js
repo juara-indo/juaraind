@@ -105,6 +105,10 @@ async function listAllAdminDocuments(env, origin) {
     throw new Error('Gagal mengambil daftar kandidat.')
   }
   const candidates = await candidateResponse.json()
+  const { results: applications } = await env.DB.prepare(
+    'SELECT candidate_id, passport_by_agency, visa_by_agency FROM applications',
+  ).all()
+  const applicationsByCandidate = new Map(applications.map((application) => [application.candidate_id, application]))
   const documentsByCandidate = new Map()
   for (const document of results) {
     const group = documentsByCandidate.get(document.candidate_id) || []
@@ -114,9 +118,64 @@ async function listAllAdminDocuments(env, origin) {
   return json({
     candidates: candidates.map((candidate) => ({
       ...candidate,
+      passport_by_agency: Boolean(applicationsByCandidate.get(candidate.candidate_id)?.passport_by_agency),
+      visa_by_agency: Boolean(applicationsByCandidate.get(candidate.candidate_id)?.visa_by_agency),
       documents: documentsByCandidate.get(candidate.candidate_id) || [],
     })),
   }, 200, origin)
+}
+
+async function uploadAdminCollectiveDocuments(request, candidateId, env, origin) {
+  const application = await env.DB.prepare(
+    'SELECT user_id, passport_by_agency, visa_by_agency FROM applications WHERE candidate_id = ?',
+  ).bind(candidateId).first()
+  if (!application) return json({ error: 'Data kolektif kandidat belum tersedia.' }, 404, origin)
+
+  const allowedCollectiveTypes = new Set()
+  if (application.passport_by_agency) allowedCollectiveTypes.add('paspor')
+  if (application.visa_by_agency) allowedCollectiveTypes.add('visa')
+  const form = await request.formData()
+  const files = form.getAll('files')
+  const documentTypes = form.getAll('document_types').map(String)
+  if (!files.length || files.length !== documentTypes.length || files.some((file) => !(file instanceof File))) {
+    return json({ error: 'File kolektif wajib dipilih.' }, 400, origin)
+  }
+  if (new Set(documentTypes).size !== documentTypes.length || documentTypes.some((type) => !allowedCollectiveTypes.has(type))) {
+    return json({ error: 'Jenis dokumen kolektif tidak valid.' }, 400, origin)
+  }
+  for (const file of files) {
+    if (!ALLOWED_TYPES.has(file.type)) return json({ error: 'Format harus PDF, JPG, atau PNG.' }, 415, origin)
+    if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
+  }
+  const existing = await env.DB.prepare(
+    `SELECT document_type FROM documents WHERE candidate_id = ? AND document_type IN (${documentTypes.map(() => '?').join(',')})`,
+  ).bind(candidateId, ...documentTypes).all()
+  if (existing.results.length) return json({ error: 'Dokumen kolektif sudah dikonversi.' }, 409, origin)
+
+  const uploaded = []
+  try {
+    for (const [index, file] of files.entries()) {
+      const id = crypto.randomUUID()
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-110) || 'document'
+      const extensionIndex = safeName.lastIndexOf('.')
+      const extension = extensionIndex > 0 ? safeName.slice(extensionIndex) : ''
+      const objectKey = `documents/${safeObjectSegment(candidateId)}/${documentTypes[index].toUpperCase()}-COLLECTIVE-${id.slice(0, 8)}${extension}`
+      await env.DOCUMENTS.put(objectKey, file.stream(), { httpMetadata: { contentType: file.type } })
+      await env.DB.prepare(
+        `INSERT INTO documents (id, user_id, candidate_id, document_type, object_key, file_name, content_type, file_size)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(id, application.user_id, candidateId, documentTypes[index], objectKey, file.name, file.type, file.size).run()
+      uploaded.push({ id, document_type: documentTypes[index] })
+    }
+  } catch (error) {
+    await Promise.all(uploaded.map(async (item) => {
+      const document = await env.DB.prepare('SELECT object_key FROM documents WHERE id = ?').bind(item.id).first()
+      if (document) await env.DOCUMENTS.delete(document.object_key)
+      await env.DB.prepare('DELETE FROM documents WHERE id = ?').bind(item.id).run()
+    }))
+    throw error
+  }
+  return json({ documents: uploaded }, 201, origin)
 }
 
 async function consumeRateLimit(key, limit, env) {
@@ -366,6 +425,11 @@ export default {
       if (url.pathname === '/admin/documents' && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return listAllAdminDocuments(env, origin)
+      }
+      const adminCollectiveMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/collective$/)
+      if (adminCollectiveMatch && request.method === 'POST') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return uploadAdminCollectiveDocuments(request, decodeURIComponent(adminCollectiveMatch[1]), env, origin)
       }
       const adminDocumentMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/documents$/)
       if (adminDocumentMatch && request.method === 'GET') {
