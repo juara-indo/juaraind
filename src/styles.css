@@ -382,10 +382,10 @@ a { color: inherit; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-grid .full { grid-column: 1 / -1; }
-.biodata-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: clamp(30px, 6vw, 76px); align-items: start; position: relative; z-index: 1; }
+.biodata-layout { display: grid; grid-template-columns: minmax(280px, 300px) minmax(0, 1fr); gap: clamp(28px, 4vw, 56px); align-items: start; position: relative; z-index: 1; }
 .biodata-aside { padding-top: 12px; }
 .biodata-aside-kicker { color: var(--crimson); font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
-.biodata-aside h2 { font-family: var(--serif); font-size: clamp(34px, 4vw, 48px); font-weight: 450; line-height: .98; letter-spacing: -.03em; margin: 16px 0 18px; }
+.biodata-aside h2 { font-family: var(--serif); font-size: clamp(34px, 3.5vw, 46px); font-weight: 450; line-height: .98; letter-spacing: -.03em; margin: 16px 0 18px; }
 .biodata-aside h2 em { color: var(--crimson); font-style: italic; }
 .biodata-aside > p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.7; }
 .completion-card { margin-top: 38px; padding-top: 16px; border-top: 1px solid var(--line); }
