@@ -479,6 +479,25 @@ const Pin = () => (
 function useSession() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [roleError, setRoleError] = useState('')
+
+  const validateRole = async (nextSession, supabase) => {
+    if (!nextSession) {
+      setRoleError('')
+      return true
+    }
+    const apiUrl = import.meta.env.VITE_DOCUMENTS_API_URL
+    if (!apiUrl) return true
+    const response = await fetch(`${apiUrl}/account/role`, {
+      headers: { Authorization: `Bearer ${nextSession.access_token}` },
+    })
+    if (!response.ok) return true
+    const payload = await response.json()
+    if (payload.role !== 'admin') return true
+    await supabase.auth.signOut()
+    setRoleError('Akun ini terdaftar sebagai Admin dan tidak dapat digunakan untuk area peserta. Gunakan halaman Admin.')
+    return false
+  }
 
   useEffect(() => {
     if (!isConfigured) { setLoading(false); return }
@@ -492,9 +511,14 @@ function useSession() {
       if (!mounted) return
       await holdTransition(startedAt, 900)
       if (!mounted) return
-      setSession(data.session)
+      const allowed = await validateRole(data.session, supabase)
+      if (!mounted) return
+      setSession(allowed ? data.session : null)
       setLoading(false)
-      const res = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+      const res = supabase.auth.onAuthStateChange(async (_e, s) => {
+        const allowed = await validateRole(s, supabase)
+        if (mounted) setSession(allowed ? s : null)
+      })
       sub = res?.data
     })()
     return () => { mounted = false; try { sub?.subscription?.unsubscribe() } catch (e) {/* ignore */} }
@@ -512,7 +536,7 @@ function useSession() {
     const supabase = await getSupabase()
     return supabase?.auth.signOut()
   }
-  return { session, loading, signInWithGoogle, signOut }
+  return { session, loading, roleError, signInWithGoogle, signOut }
 }
 
 /* ---------------- Kandidat: ID + form ---------------- */
@@ -851,7 +875,7 @@ function Gallery({ language }) {
 }
 
 /* ---------------- Auth + Dashboard ---------------- */
-function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut, language = 'id' }) {
+function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogle, signOut, language = 'id' }) {
   const copy = landingTranslations[language]
   const { cand, loading: candLoading, updateProfile } = useCandidate(session)
   const { documents, loading: documentsLoading, error: documentsError, upload, download, getDocumentUrl, remove, submitApplication } = useDocuments(session)
@@ -1147,6 +1171,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut,
           ) : !session ? (
             <>
               <h3 style={{ fontFamily: 'var(--serif)', fontSize: 26, marginBottom: 8 }}>{copy.authCardTitle}</h3>
+              {roleError && <div className="err-box">{roleError}</div>}
               <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 22, lineHeight: 1.7 }}>
                 {copy.authCardDesc}
               </p>
@@ -1470,7 +1495,7 @@ function ScrollIndicator() {
 export default function App() {
   if (maintenanceMode) return <MaintenancePage />
 
-  const { session, loading, signInWithGoogle, signOut } = useSession()
+  const { session, loading, roleError, signInWithGoogle, signOut } = useSession()
   const [language, setLanguage] = useState('tr')
   return (
     <>
@@ -1488,6 +1513,7 @@ export default function App() {
       <AuthSection
         session={session}
         loading={loading}
+        roleError={roleError}
         signInWithGoogle={signInWithGoogle}
         signOut={signOut}
         language={language}
