@@ -4,6 +4,7 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 
 export default defineConfig({
   root: '.',
+  base: '/admin/',
   plugins: [react(), viteSingleFile()],
   build: { outDir: 'dist', emptyOutDir: true },
 })
