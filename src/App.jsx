@@ -817,6 +817,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const requiredDocumentTypes = ['ktp', 'kk', 'ijazah', 'cv', 'paspor', 'visa']
   const hasUploadedDocument = (documentType) => documents.some((document) => document.document_type === documentType)
   const hasAcceptedDocument = (documentType) => documents.some((document) => document.document_type === documentType && document.validation_status === 'accepted')
+  const hasRejectedDocument = (documentType) => documents.some((document) => document.document_type === documentType && document.validation_status === 'rejected')
   const documentReady = (documentType) => hasUploadedDocument(documentType) || agencyDocuments[documentType]
   const canApply = requiredDocumentTypes.every(documentReady) && !documentBusy && !applying && !applied
   const hasPendingDocuments = Object.values(selectedDocuments).some((selected) => (
@@ -1088,9 +1089,10 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     const file = files[0]
                     const stored = hasUploadedDocument(documentType.id)
                     const accepted = hasAcceptedDocument(documentType.id)
+                    const rejected = !files.length && hasRejectedDocument(documentType.id)
                     const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
                     return (
-                      <div className="document-slot" key={documentType.id}>
+                      <div className={`document-slot ${rejected ? 'is-rejected' : ''}`} key={documentType.id}>
                         <div className="document-slot-info">
                           <span className="document-number">{String(index + 1).padStart(2, '0')}</span>
                           <DocumentIcon type={documentType.id} />
@@ -1100,12 +1102,14 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                               ? `${files.length} file dipilih · ${files.map((item) => item.name).join(', ')}`
                               : file
                                 ? `${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB`
-                                : stored
-                                  ? 'Dokumen tersimpan'
+                                : rejected
+                                  ? 'Dokumen ditolak'
+                                  : stored
+                                    ? 'Dokumen tersimpan'
                                 : documentType.hint}
                           </span>
                         </div>
-                        {ready ? (
+                        {ready && !rejected ? (
                           <span className="upload-btn upload-status" aria-label="Dokumen sudah dipilih">
                             OK
                           </span>
