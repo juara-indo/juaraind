@@ -334,6 +334,9 @@ async function uploadDocuments(request, user, token, env, origin) {
   for (const [index, file] of files.entries()) {
     if (!ALLOWED_DOCUMENT_TYPES.has(documentTypes[index])) return json({ error: 'Jenis dokumen tidak valid.' }, 400, origin)
     if (!ALLOWED_TYPES.has(file.type)) return json({ error: 'Format harus PDF, JPG, atau PNG.' }, 415, origin)
+    if (documentTypes[index] === 'pas_photo' && !['image/jpeg', 'image/png'].includes(file.type)) {
+      return json({ error: 'Pas photo harus berupa JPG atau PNG.' }, 415, origin)
+    }
     if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
   }
 
