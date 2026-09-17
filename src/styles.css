@@ -619,6 +619,97 @@ footer a:hover { opacity: 1; color: var(--gold); }
   .biodata-form .submit-btn { width: 100%; }
 }
 
+/* ---------- Dashboard kandidat / area admin ---------- */
+.candidate-section {
+  background:
+    radial-gradient(circle at 8% 12%, rgba(200,147,58,.13), transparent 24rem),
+    var(--bg);
+}
+.auth-wrap.candidate-mode {
+  max-width: 1160px;
+}
+.candidate-mode .candidate-tabs {
+  position: relative;
+  max-width: 620px;
+  margin: 0 auto 34px;
+  padding: 6px;
+  background: var(--night);
+  border: 0;
+  border-radius: 4px 16px 16px 16px;
+  box-shadow: 8px 8px 0 rgba(179,38,30,.12);
+}
+.candidate-mode .candidate-tabs::before {
+  content: 'PUSAT KANDIDAT';
+  position: absolute;
+  bottom: calc(100% + 16px);
+  left: 0;
+  color: var(--crimson);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+.candidate-mode .candidate-tabs button {
+  min-height: 48px;
+  color: rgba(242,234,211,.68);
+  border-radius: 3px 10px 10px 10px;
+}
+.candidate-mode .candidate-tabs button:hover { color: var(--bg); background: rgba(242,234,211,.1); }
+.candidate-mode .candidate-tabs button.is-active {
+  color: var(--night);
+  background: var(--gold);
+  box-shadow: 3px 3px 0 rgba(242,234,211,.14);
+}
+.candidate-mode .candidate-tabs button.is-active span { color: var(--crimson-deep); }
+.candidate-mode .id-card {
+  margin-bottom: 38px;
+  border-bottom: 4px solid var(--gold);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(200,147,58,.3), transparent 18rem),
+    linear-gradient(110deg, var(--night), #2a1815 64%, var(--crimson-deep));
+  box-shadow: 12px 12px 0 rgba(179,38,30,.16), 0 18px 38px rgba(20,18,16,.18);
+}
+.candidate-mode .id-label { color: var(--gold); font-weight: 700; letter-spacing: .23em; }
+.candidate-mode .id-value { color: var(--bg); font-size: clamp(30px, 4vw, 48px); }
+.candidate-mode .id-hint { color: rgba(242,234,211,.7); }
+.candidate-mode .candidate-header .avatar { border-color: var(--gold); box-shadow: 0 0 0 5px rgba(200,147,58,.15); }
+.candidate-mode .biodata-layout { grid-template-columns: 250px minmax(0, 1fr); gap: clamp(38px, 7vw, 92px); }
+.candidate-mode .biodata-aside h2 { font-size: clamp(38px, 4.8vw, 62px); }
+.candidate-mode .biodata-form {
+  padding: clamp(25px, 4vw, 42px);
+  border-radius: 4px 24px 24px 24px;
+  background: rgba(250,246,236,.9);
+  box-shadow: 10px 10px 0 rgba(200,147,58,.14), 0 16px 44px rgba(60,40,20,.07);
+}
+.candidate-mode .form-heading h3 { font-size: 32px; }
+.candidate-mode .field input,
+.candidate-mode .field select,
+.candidate-mode .field textarea,
+.candidate-mode .custom-select-trigger,
+.candidate-mode .searchable-select > input { border-radius: 4px 12px 12px 12px; background: #fffdf8; }
+.candidate-mode .documents-card { padding-top: 34px; }
+.candidate-mode .documents-head { align-items: flex-end; padding-bottom: 4px; }
+.candidate-mode .documents-head .field-label { color: var(--crimson); font-weight: 800; }
+.candidate-mode .document-slot {
+  min-height: 76px;
+  padding: 15px 17px;
+  border-radius: 3px 14px 14px 14px;
+  background: rgba(250,246,236,.72);
+  transition: transform .25s var(--ease), border-color .25s, background .25s, box-shadow .25s;
+}
+.candidate-mode .document-slot:hover { transform: translateX(4px); border-color: rgba(179,38,30,.35); background: var(--paper); box-shadow: 5px 5px 0 rgba(200,147,58,.13); }
+.candidate-mode .document-slot.is-rejected { box-shadow: 4px 4px 0 rgba(179,38,30,.12); }
+.candidate-mode .document-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(179,38,30,.1); }
+.candidate-mode .upload-btn { border-radius: 3px 10px 10px 10px; background: var(--night); }
+.candidate-mode .upload-btn:hover { background: var(--crimson); }
+.candidate-mode .apply-btn { border-radius: 3px 14px 14px 14px; box-shadow: 5px 5px 0 rgba(200,147,58,.3); }
+@media (max-width: 760px) {
+  .candidate-mode .candidate-tabs { margin-top: 8px; margin-bottom: 28px; }
+  .candidate-mode .candidate-tabs::before { bottom: calc(100% + 10px); }
+  .candidate-mode .biodata-layout { grid-template-columns: 1fr; gap: 24px; }
+  .candidate-mode .biodata-form { box-shadow: 6px 6px 0 rgba(200,147,58,.14); }
+  .candidate-mode .id-card { margin-bottom: 30px; }
+}
+
 :where(button, input, textarea, select):focus-visible {
   outline: 3px solid rgba(179,38,30,.35);
   outline-offset: 3px;
