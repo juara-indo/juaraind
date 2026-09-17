@@ -1451,7 +1451,7 @@ export default function App() {
   if (maintenanceMode) return <MaintenancePage />
 
   const { session, loading, signInWithGoogle, signOut } = useSession()
-  const [language, setLanguage] = useState('id')
+  const [language, setLanguage] = useState('tr')
   return (
     <>
       <ScrollIndicator />
