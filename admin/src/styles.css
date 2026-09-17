@@ -14,6 +14,9 @@ h2 { font-size: 18px; margin-bottom: 16px; }
 button { border: 0; border-radius: 999px; padding: 11px 18px; cursor: pointer; background: #b3261e; color: #fff; }
 button:hover { background: #8d1d18; }
 button.documents-button { padding: 8px 12px; font-size: 12px; line-height: 1.2; white-space: nowrap; }
+.biodata-button.is-incomplete { background: #c88713; }
+.biodata-button.is-incomplete:hover { background: #a66d0c; }
+.biodata-button.is-complete { background: #b3261e; }
 input { flex: 1; min-width: 0; border: 1px solid #d6c9ae; border-radius: 999px; padding: 12px 16px; background: #fffaf0; }
 .toolbar { margin-bottom: 18px; }
 .layout { align-items: flex-start; }
