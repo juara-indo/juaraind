@@ -1089,7 +1089,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                     const file = files[0]
                     const stored = hasUploadedDocument(documentType.id)
                     const accepted = hasAcceptedDocument(documentType.id)
-                    const rejected = !files.length && hasRejectedDocument(documentType.id)
+                    const rejected = !accepted && !files.length && hasRejectedDocument(documentType.id)
                     const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
                     return (
                       <div className={`document-slot ${rejected ? 'is-rejected' : ''}`} key={documentType.id}>
@@ -1109,7 +1109,12 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                                 : documentType.hint}
                           </span>
                         </div>
-                        {ready && !rejected ? (
+                        {rejected ? (
+                          <label className={`edit-document-btn rejected-edit ${documentBusy ? 'disabled' : ''}`}>
+                            Ganti dokumen
+                            <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
+                          </label>
+                        ) : ready ? (
                           <span className="upload-btn upload-status" aria-label="Dokumen sudah dipilih">
                             OK
                           </span>
@@ -1119,7 +1124,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                             <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
                           </label>
                         )}
-                        {ready && !agencyDocuments[documentType.id] && !accepted && (
+                        {ready && !rejected && !agencyDocuments[documentType.id] && !accepted && (
                           <label className="edit-document-btn">
                             Edit
                             <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
