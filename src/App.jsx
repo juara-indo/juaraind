@@ -1384,7 +1384,7 @@ function Footer({ language }) {
         </div>
       </div>
       <div className="foot-bottom">
-        <span>© 2026 PT. JUARA — PT Anadolu Talenta Nusantara</span>
+        <span>© 2026 PT. JUARA</span>
         <span>Jakarta ✦ Istanbul</span>
       </div>
     </footer>
