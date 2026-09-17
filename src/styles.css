@@ -358,7 +358,7 @@ a { color: inherit; }
   width: 100vw; margin: 0 0 26px calc((100% - 100vw) / 2); min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) max-content;
   column-gap: 28px; align-items: start;
   position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 10px 24px rgba(20,18,16,0.16);
+  box-shadow: none;
 }
 .id-card::after {
   content: '✦'; position: absolute; right: -18px; top: -34px; font-size: 150px; color: var(--bg); opacity: 0.14;
@@ -658,7 +658,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
   background:
     radial-gradient(circle at 90% 0%, rgba(200,147,58,.3), transparent 18rem),
     linear-gradient(110deg, var(--night), #2a1815 64%, var(--crimson-deep));
-  box-shadow: 12px 12px 0 rgba(179,38,30,.16), 0 18px 38px rgba(20,18,16,.18);
+  box-shadow: none;
 }
 .candidate-mode .id-label { color: var(--gold); font-weight: 700; letter-spacing: .23em; }
 .candidate-mode .id-value { color: var(--bg); font-size: clamp(30px, 4vw, 48px); }
