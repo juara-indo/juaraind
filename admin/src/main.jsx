@@ -30,9 +30,19 @@ function Icon({ name, size = 18 }) {
 function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [candidates, setCandidates] = useState([])
-  const [financeCandidates, setFinanceCandidates] = useState([])
-  const [activeTab, setActiveTab] = useState('candidates')
+  const readSessionCache = (key, fallback) => {
+    try {
+      const value = sessionStorage.getItem(key)
+      return value ? JSON.parse(value) : fallback
+    } catch {
+      return fallback
+    }
+  }
+  const [candidates, setCandidates] = useState(() => readSessionCache('juara-admin-candidates', []))
+  const [financeCandidates, setFinanceCandidates] = useState(() => readSessionCache('juara-admin-finance', []))
+  const [activeTab, setActiveTabState] = useState(() => {
+    try { return sessionStorage.getItem('juara-admin-tab') || 'candidates' } catch { return 'candidates' }
+  })
   const [selectedFinanceCandidate, setSelectedFinanceCandidate] = useState(null)
   const [financeForm, setFinanceForm] = useState(null)
   const [paymentForm, setPaymentForm] = useState({ amount: '', payment_date: new Date().toISOString().slice(0, 10), note: '' })
@@ -46,6 +56,10 @@ function App() {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [reviewingDocumentId, setReviewingDocumentId] = useState(null)
   const [error, setError] = useState('')
+  const setActiveTab = (tab) => {
+    sessionStorage.setItem('juara-admin-tab', tab)
+    setActiveTabState(tab)
+  }
 
   useEffect(() => {
     const modalOpen = Boolean(selectedCandidate || selectedBiodata || selectedCollectiveCandidate || selectedPreview)
@@ -129,14 +143,18 @@ function App() {
   const loadCandidates = async () => {
     try {
       setError('')
-      setCandidates((await request('/admin/documents')).candidates)
+      const nextCandidates = (await request('/admin/documents')).candidates
+      setCandidates(nextCandidates)
+      sessionStorage.setItem('juara-admin-candidates', JSON.stringify(nextCandidates))
     } catch (requestError) { setError(requestError.message) }
   }
 
   const loadFinance = async () => {
     try {
       setError('')
-      setFinanceCandidates((await request('/admin/finance')).candidates)
+      const nextFinanceCandidates = (await request('/admin/finance')).candidates
+      setFinanceCandidates(nextFinanceCandidates)
+      sessionStorage.setItem('juara-admin-finance', JSON.stringify(nextFinanceCandidates))
     } catch (requestError) { setError(requestError.message) }
   }
 
