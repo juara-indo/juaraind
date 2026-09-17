@@ -67,7 +67,10 @@ function App() {
     const supabase = getSupabase()
     if (!supabase) { setLoading(false); return undefined }
     const loadSession = async () => {
-      const { data } = await supabase.auth.getSession()
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession()
+      const { data } = refreshError
+        ? await supabase.auth.getSession()
+        : refreshed
       if (mounted) { setSession(data.session); setLoading(false) }
     }
     loadSession()
