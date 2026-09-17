@@ -107,7 +107,7 @@ a { color: inherit; }
   max-height: 58px;
   object-fit: contain;
 }
-.nav-links { position: absolute; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; gap: 28px; list-style: none; }
+.nav-links { position: absolute; left: calc(50% - 110px); transform: translateX(-50%); display: flex; justify-content: center; gap: 28px; list-style: none; }
 .nav-links a {
   color: var(--bg); text-decoration: none; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;
   position: relative; padding-bottom: 3px;
