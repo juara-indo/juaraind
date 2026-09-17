@@ -896,6 +896,16 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const [avatarUrl, setAvatarUrl] = useState('')
 
   useEffect(() => {
+    if (!documentBusy) return undefined
+    const warnBeforeLeave = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warnBeforeLeave)
+    return () => window.removeEventListener('beforeunload', warnBeforeLeave)
+  }, [documentBusy])
+
+  useEffect(() => {
     let active = true
     const pasPhoto = documents.find((document) => document.document_type === 'pas_photo')
     if (!pasPhoto) {
@@ -1195,10 +1205,10 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
               {err && <div className="err-box">{err}</div>}
               {documentsError && !err && <div className="err-box">{documentsError}</div>}
               <div className="candidate-tabs" role="tablist" aria-label="Tahapan pendaftaran">
-                <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => setActiveTab('profile')}>
+                <button type="button" role="tab" aria-selected={activeTab === 'profile'} className={activeTab === 'profile' ? 'is-active' : ''} onClick={() => setActiveTab('profile')} disabled={documentBusy}>
                   <span>01</span> Data diri
                 </button>
-                <button type="button" role="tab" aria-selected={activeTab === 'documents'} className={activeTab === 'documents' ? 'is-active' : ''} onClick={() => setActiveTab('documents')}>
+                <button type="button" role="tab" aria-selected={activeTab === 'documents'} className={activeTab === 'documents' ? 'is-active' : ''} onClick={() => setActiveTab('documents')} disabled={documentBusy}>
                   <span>02</span> Upload dokumen
                 </button>
               </div>
