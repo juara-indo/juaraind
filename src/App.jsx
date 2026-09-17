@@ -47,6 +47,14 @@ const landingTranslations = {
     processLink: 'Alur Pendaftaran',
     hotelLink: 'Hotel Mitra',
     hotelCountry: 'Turki',
+    authKicker: 'Pendaftaran Kandidat',
+    authTitle: <>Satu akun Google, <em>satu ID unik</em> untuk Anda</>,
+    authDesc: <>Setiap kandidat menerima <b>ID Kandidat permanen</b> setelah akun terhubung. Sebutkan ID ini saat menghubungi kantor agency — seluruh berkas Anda bisa langsung dipanggil tanpa mencari ulang.</>,
+    authBullets: ['Login aman via Google — tanpa mengisi password baru', 'Data tersimpan terenkripsi di Supabase (hanya Anda yang bisa melihat)', 'ID langsung diterbitkan otomatis saat akun dibuat'],
+    authCardTitle: 'Masuk / Daftar',
+    authCardDesc: 'Gunakan akun Google Anda. ID Kandidat akan diterbitkan otomatis begitu akun terhubung.',
+    authGoogle: 'Masuk dengan Google',
+    authNote: 'Dengan mendaftar, Anda menyetujui proses verifikasi dokumen dan seleksi oleh tim PT. JUARA. Data Anda tidak dibagikan ke pihak ketiga tanpa persetujuan.',
     stats: ['Kandidat ditempatkan sejak 2019', 'Hotel & resort mitra di Turki', 'Kota penempatan: Istanbul, Antalya, Bodrum, Izmir', 'Kelulusan visa kerja mitra'],
     steps: ['Daftar & Dapatkan ID', 'Seleksi & Wawancara', 'Pelatihan & Sertifikasi', 'Dokumen & Visa Kerja', 'Berangkat & Mulai Karier'],
     stepDescriptions: STEPS.map((step) => step.desc),
@@ -77,6 +85,14 @@ const landingTranslations = {
     processLink: 'Registration Process',
     hotelLink: 'Partner Hotels',
     hotelCountry: 'Türkiye',
+    authKicker: 'Candidate Registration',
+    authTitle: <>One Google account, <em>one unique ID</em> for you</>,
+    authDesc: <>Every candidate receives a <b>permanent Candidate ID</b> after connecting their account. Share this ID with the agency office — your records can be retrieved immediately.</>,
+    authBullets: ['Secure Google sign-in — no new password required', 'Your data is encrypted in Supabase and visible only to you', 'Your ID is issued automatically when your account is created'],
+    authCardTitle: 'Sign in / Register',
+    authCardDesc: 'Use your Google account. Your Candidate ID will be issued automatically once your account is connected.',
+    authGoogle: 'Sign in with Google',
+    authNote: 'By registering, you agree to document verification and selection by PT. JUARA. Your data will not be shared with third parties without your consent.',
     stats: ['Candidates placed since 2019', 'Partner hotels & resorts in Türkiye', 'Placement cities: Istanbul, Antalya, Bodrum, Izmir', 'Partner work visa approval rate'],
     steps: ['Register & Get Your ID', 'Selection & Interview', 'Training & Certification', 'Documents & Work Visa', 'Depart & Start Your Career'],
     stepDescriptions: [
@@ -120,6 +136,14 @@ const landingTranslations = {
     processLink: 'Başvuru Süreci',
     hotelLink: 'Partner Oteller',
     hotelCountry: 'Türkiye',
+    authKicker: 'Aday Başvurusu',
+    authTitle: <>Tek Google hesabı, <em>size özel tek kimlik</em></>,
+    authDesc: <>Her aday, hesabını bağladıktan sonra <b>kalıcı bir Aday Kimliği</b> alır. Bu kimliği acente ofisiyle paylaşın — kayıtlarınıza hemen ulaşılabilir.</>,
+    authBullets: ['Güvenli Google girişi — yeni bir şifre gerekmez', 'Verileriniz Supabase’de şifrelenir ve yalnızca sizin tarafınızdan görüntülenebilir', 'Hesabınız oluşturulduğunda kimliğiniz otomatik olarak verilir'],
+    authCardTitle: 'Giriş / Başvuru',
+    authCardDesc: 'Google hesabınızı kullanın. Hesabınız bağlandığında Aday Kimliğiniz otomatik olarak oluşturulur.',
+    authGoogle: 'Google ile giriş yap',
+    authNote: 'Başvurarak PT. JUARA tarafından yapılacak belge doğrulama ve seçim sürecini kabul etmiş olursunuz. Verileriniz izniniz olmadan üçüncü taraflarla paylaşılmaz.',
     stats: ['2019’dan beri yerleştirilen adaylar', 'Türkiye’deki partner otel ve tatil köyleri', 'Yerleştirme şehirleri: İstanbul, Antalya, Bodrum, İzmir', 'Partner çalışma vizesi onay oranı'],
     steps: ['Başvurun ve Kimliğinizi Alın', 'Seçim ve Mülakat', 'Eğitim ve Sertifikasyon', 'Belgeler ve Çalışma Vizesi', 'Yola Çıkın ve Kariyerinize Başlayın'],
     stepDescriptions: [
@@ -807,7 +831,8 @@ function Gallery({ language }) {
 }
 
 /* ---------------- Auth + Dashboard ---------------- */
-function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut }) {
+function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut, language = 'id' }) {
+  const copy = landingTranslations[language]
   const { cand, loading: candLoading, updateProfile } = useCandidate(session)
   const { documents, loading: documentsLoading, error: documentsError, upload, download, getDocumentUrl, remove, submitApplication } = useDocuments(session)
   const [form, setForm] = useState(null)
@@ -1024,7 +1049,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
       <section className="section auth-section auth-loading-section" id="daftar" aria-live="polite">
         <div className="auth-wrap auth-loading-wrap">
           <div className="auth-transition-card" role="status" aria-label="Menyiapkan formulir pendaftaran">
-            <span className="transition-kicker">Pendaftaran kandidat</span>
+            <span className="transition-kicker">{language === 'tr' ? 'Aday başvurusu' : language === 'en' ? 'Candidate registration' : 'Pendaftaran kandidat'}</span>
             <span className="transition-line" aria-hidden="true" />
           </div>
         </div>
@@ -1037,16 +1062,13 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
       <div className={`auth-wrap ${session ? 'candidate-mode' : ''}`}>
         {!session && (
           <Reveal className="auth-pitch">
-            <div className="sec-kicker">Pendaftaran Kandidat</div>
-            <h2 className="sec-title">Satu akun Google, <em>satu ID unik</em> untuk Anda</h2>
+            <div className="sec-kicker">{copy.authKicker}</div>
+            <h2 className="sec-title">{copy.authTitle}</h2>
             <p className="sec-desc">
-              Setiap kandidat menerima <b>ID Kandidat permanen</b> setelah akun terhubung.
-              Sebutkan ID ini saat menghubungi kantor agency — seluruh berkas Anda bisa langsung dipanggil tanpa mencari ulang.
+              {copy.authDesc}
             </p>
             <ul style={{ listStyle: 'none', display: 'grid', gap: 12, fontSize: 14, color: 'var(--ink-soft)' }}>
-              <li>✦ Login aman via Google — tanpa mengisi password baru</li>
-              <li>✦ Data tersimpan terenkripsi di Supabase (hanya Anda yang bisa melihat)</li>
-              <li>✦ ID langsung diterbitkan otomatis saat akun dibuat</li>
+              {copy.authBullets.map((bullet) => <li key={bullet}>✦ {bullet}</li>)}
             </ul>
           </Reveal>
         )}
@@ -1104,16 +1126,15 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
             </div>
           ) : !session ? (
             <>
-              <h3 style={{ fontFamily: 'var(--serif)', fontSize: 26, marginBottom: 8 }}>Masuk / Daftar</h3>
+              <h3 style={{ fontFamily: 'var(--serif)', fontSize: 26, marginBottom: 8 }}>{copy.authCardTitle}</h3>
               <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 22, lineHeight: 1.7 }}>
-                Gunakan akun Google Anda. ID Kandidat akan diterbitkan otomatis begitu akun terhubung.
+                {copy.authCardDesc}
               </p>
               <button className="google-btn" onClick={signInWithGoogle} disabled={!isConfigured}>
-                <GoogleIcon /> Masuk dengan Google
+                <GoogleIcon /> {copy.authGoogle}
               </button>
               <p className="auth-note">
-                Dengan mendaftar, Anda menyetujui proses verifikasi dokumen dan seleksi oleh tim
-                PT. JUARA. Data Anda tidak dibagikan ke pihak ketiga tanpa persetujuan.
+                {copy.authNote}
               </p>
             </>
           ) : (
@@ -1449,6 +1470,7 @@ export default function App() {
         loading={loading}
         signInWithGoogle={signInWithGoogle}
         signOut={signOut}
+        language={language}
       />
       {!loading && !session && <Footer language={language} />}
     </>
