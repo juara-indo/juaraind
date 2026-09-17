@@ -46,8 +46,11 @@ const landingTranslations = {
     candidateRegister: 'Daftar Kandidat',
     processLink: 'Alur Pendaftaran',
     hotelLink: 'Hotel Mitra',
+    hotelCountry: 'Turki',
     stats: ['Kandidat ditempatkan sejak 2019', 'Hotel & resort mitra di Turki', 'Kota penempatan: Istanbul, Antalya, Bodrum, Izmir', 'Kelulusan visa kerja mitra'],
     steps: ['Daftar & Dapatkan ID', 'Seleksi & Wawancara', 'Pelatihan & Sertifikasi', 'Dokumen & Visa Kerja', 'Berangkat & Mulai Karier'],
+    stepDescriptions: STEPS.map((step) => step.desc),
+    galleryCaptions: GALLERY.map((gallery) => gallery.caption),
   },
   en: {
     nav: ['Partner Hotels', 'Process', 'Gallery', 'Registration'],
@@ -73,8 +76,24 @@ const landingTranslations = {
     candidateRegister: 'Candidate Registration',
     processLink: 'Registration Process',
     hotelLink: 'Partner Hotels',
+    hotelCountry: 'Türkiye',
     stats: ['Candidates placed since 2019', 'Partner hotels & resorts in Türkiye', 'Placement cities: Istanbul, Antalya, Bodrum, Izmir', 'Partner work visa approval rate'],
     steps: ['Register & Get Your ID', 'Selection & Interview', 'Training & Certification', 'Documents & Work Visa', 'Depart & Start Your Career'],
+    stepDescriptions: [
+      'Sign in with Google, complete your profile, and the system will issue your unique Candidate ID. Keep this ID: it is the key to retrieving your records at the agency.',
+      'Our recruitment team reviews your experience and language skills. Shortlisted candidates join an online interview with a partner hotel recruiter in Türkiye.',
+      'Learn basic Turkish, international hospitality standards, and workplace culture — including a workplace safety class.',
+      'Passport processing, employment contracts, work permits, and visas are handled together with the agency’s legal officer until approved.',
+      'Ticketing, arrival in Istanbul or Antalya, airport pickup, and orientation at your hotel.',
+    ],
+    galleryCaptions: [
+      'Hotel staff uniforms — five-star hospitality standards',
+      'Antalya resort pool — the heart of the Turkish summer',
+      'Hotel operations team — your career opportunity',
+      'Istanbul at night — a city across two continents',
+      'Four Seasons Bosphorus — placement partner',
+      'Mediterranean coast resort, Türkiye',
+    ],
   },
   tr: {
     nav: ['Partner Oteller', 'Süreç', 'Galeri', 'Başvuru'],
@@ -100,8 +119,24 @@ const landingTranslations = {
     candidateRegister: 'Aday Başvurusu',
     processLink: 'Başvuru Süreci',
     hotelLink: 'Partner Oteller',
+    hotelCountry: 'Türkiye',
     stats: ['2019’dan beri yerleştirilen adaylar', 'Türkiye’deki partner otel ve tatil köyleri', 'Yerleştirme şehirleri: İstanbul, Antalya, Bodrum, İzmir', 'Partner çalışma vizesi onay oranı'],
     steps: ['Başvurun ve Kimliğinizi Alın', 'Seçim ve Mülakat', 'Eğitim ve Sertifikasyon', 'Belgeler ve Çalışma Vizesi', 'Yola Çıkın ve Kariyerinize Başlayın'],
+    stepDescriptions: [
+      'Google ile giriş yapın, profilinizi tamamlayın ve sistem benzersiz Aday Kimliğinizi oluştursun. Bu kimliği saklayın: acentedeki kayıtlarınıza ulaşmanın anahtarıdır.',
+      'İşe alım ekibimiz deneyiminizi ve dil becerilerinizi değerlendirir. Uygun adaylar, Türkiye’deki partner otelin işe alım uzmanıyla çevrim içi görüşmeye davet edilir.',
+      'Temel Türkçe, uluslararası otelcilik standartları ve iş kültürü eğitimi alın — iş güvenliği dersi dahil.',
+      'Pasaport işlemleri, iş sözleşmesi, çalışma izni ve vize süreçleri, onaylanana kadar acentenin hukuk sorumlusuyla birlikte yürütülür.',
+      'Biletleme, İstanbul veya Antalya’ya varış, havaalanı karşılaması ve çalışacağınız otelde oryantasyon.',
+    ],
+    galleryCaptions: [
+      'Otel personeli üniformaları — beş yıldızlı hizmet standardı',
+      'Antalya tatil köyü havuzu — Türkiye yazının kalbi',
+      'Otel operasyon ekibi — kariyer fırsatınız',
+      'Gece İstanbul — iki kıtayı birleştiren şehir',
+      'Four Seasons Bosphorus — yerleştirme ortağı',
+      'Akdeniz sahilindeki tatil köyü, Türkiye',
+    ],
   },
 }
 
@@ -705,7 +740,7 @@ function Hotels({ language }) {
             <div className="hotel-info">
               <div className="hotel-tier">{h.tier}</div>
               <div className="hotel-name">{h.name}</div>
-              <div className="hotel-city"><Pin /> {h.city}, Turki</div>
+              <div className="hotel-city"><Pin /> {h.city}, {copy.hotelCountry}</div>
               <div className="hotel-tags">{h.positions.map((p) => <span key={p}>{p}</span>)}</div>
             </div>
           </Reveal>
@@ -734,7 +769,7 @@ function Process({ language }) {
           <Reveal className="tl-item" key={s.no} delay={i * 80}>
             <div className="tl-no">{s.no}</div>
             <div className="tl-title">{copy.steps[i]}</div>
-            <p className="tl-desc">{s.desc}</p>
+            <p className="tl-desc">{copy.stepDescriptions[i]}</p>
           </Reveal>
         ))}
       </div>
@@ -761,9 +796,9 @@ function Gallery({ language }) {
           <Reveal as="figure" key={i} delay={i * 50}>
             <picture>
               <source type="image/webp" srcSet={g.srcSet?.replace(/\.jpg/g, '.webp')} sizes={g.sizes} />
-              <img src={g.img} alt={g.caption} loading="lazy" decoding="async" width={g.width} height={g.height} srcSet={g.srcSet} sizes={g.sizes} />
+              <img src={g.img} alt={copy.galleryCaptions[i]} loading="lazy" decoding="async" width={g.width} height={g.height} srcSet={g.srcSet} sizes={g.sizes} />
             </picture>
-            <figcaption>{g.caption}</figcaption>
+            <figcaption>{copy.galleryCaptions[i]}</figcaption>
           </Reveal>
         ))}
       </div>
