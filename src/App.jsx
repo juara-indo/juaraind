@@ -51,6 +51,9 @@ const landingTranslations = {
     steps: ['Daftar & Dapatkan ID', 'Seleksi & Wawancara', 'Pelatihan & Sertifikasi', 'Dokumen & Visa Kerja', 'Berangkat & Mulai Karier'],
     stepDescriptions: STEPS.map((step) => step.desc),
     galleryCaptions: GALLERY.map((gallery) => gallery.caption),
+    hotelTiers: HOTELS.map((hotel) => hotel.tier),
+    hotelPositions: Object.fromEntries(HOTELS.map((hotel) => [hotel.name, hotel.positions])),
+    marquee: ['Istanbul ✦ Antalya ✦ Bodrum ✦ Izmir ✦ Cappadocia', 'Layanan F&B', 'Housekeeping', 'Front Office', 'Dapur & Pastry', 'Relasi Tamu'],
   },
   en: {
     nav: ['Partner Hotels', 'Process', 'Gallery', 'Registration'],
@@ -94,6 +97,15 @@ const landingTranslations = {
       'Four Seasons Bosphorus — placement partner',
       'Mediterranean coast resort, Türkiye',
     ],
+    hotelTiers: ['Five Star', 'Five Star', 'Five Star', 'Five Star · All-Inclusive', 'Five Star · Golf Resort'],
+    hotelPositions: {
+      'Four Seasons at the Bosphorus': ['F&B Service', 'Housekeeping', 'Guest Relations'],
+      'CVK Park Bosphorus': ['Front Office', 'Kitchen / Pastry'],
+      'Mandarin Oriental Bosphorus': ['F&B Service', 'Spa & Wellness'],
+      'Miracle Resort': ['Animation Team', 'F&B Service'],
+      'Cornelia DeLuxe Resort': ['Housekeeping', 'Kitchen / Pastry'],
+    },
+    marquee: ['Istanbul ✦ Antalya ✦ Bodrum ✦ Izmir ✦ Cappadocia', 'F&B Service', 'Housekeeping', 'Front Office', 'Kitchen & Pastry', 'Guest Relations'],
   },
   tr: {
     nav: ['Partner Oteller', 'Süreç', 'Galeri', 'Başvuru'],
@@ -137,6 +149,15 @@ const landingTranslations = {
       'Four Seasons Bosphorus — yerleştirme ortağı',
       'Akdeniz sahilindeki tatil köyü, Türkiye',
     ],
+    hotelTiers: ['Beş Yıldızlı', 'Beş Yıldızlı', 'Beş Yıldızlı', 'Beş Yıldızlı · Her Şey Dahil', 'Beş Yıldızlı · Golf Resort'],
+    hotelPositions: {
+      'Four Seasons at the Bosphorus': ['Yiyecek & İçecek', 'Kat Hizmetleri', 'Misafir İlişkileri'],
+      'CVK Park Bosphorus': ['Ön Büro', 'Mutfak & Pastane'],
+      'Mandarin Oriental Bosphorus': ['Yiyecek & İçecek', 'Spa & Wellness'],
+      'Miracle Resort': ['Animasyon Ekibi', 'Yiyecek & İçecek'],
+      'Cornelia DeLuxe Resort': ['Kat Hizmetleri', 'Mutfak & Pastane'],
+    },
+    marquee: ['İstanbul ✦ Antalya ✦ Bodrum ✦ İzmir ✦ Kapadokya', 'Yiyecek & İçecek', 'Kat Hizmetleri', 'Ön Büro', 'Mutfak & Pastane', 'Misafir İlişkileri'],
   },
 }
 
@@ -705,9 +726,8 @@ function Hero({ session, onLogin, language }) {
 }
 
 /* ---------------- Marquee ---------------- */
-function Marquee() {
-  const items = ['Istanbul ✦ Antalya ✦ Bodrum ✦ Izmir ✦ Cappadocia',
-    'F&B Service', 'Housekeeping', 'Front Office', 'Kitchen & Pastry', 'Guest Relations']
+function Marquee({ language }) {
+  const items = landingTranslations[language].marquee
   const row = items.map((t, i) => <span key={i}>{t} <i className="dot" /></span>)
   return (
     <div className="marquee" aria-hidden="true">
@@ -738,10 +758,10 @@ function Hotels({ language }) {
               <img src={h.img} alt={h.alt} loading="lazy" decoding="async" width={h.width} height={h.height} srcSet={h.srcSet} sizes={h.sizes} />
             </picture>
             <div className="hotel-info">
-              <div className="hotel-tier">{h.tier}</div>
+              <div className="hotel-tier">{copy.hotelTiers[i]}</div>
               <div className="hotel-name">{h.name}</div>
               <div className="hotel-city"><Pin /> {h.city}, {copy.hotelCountry}</div>
-              <div className="hotel-tags">{h.positions.map((p) => <span key={p}>{p}</span>)}</div>
+              <div className="hotel-tags">{copy.hotelPositions[h.name].map((position) => <span key={position}>{position}</span>)}</div>
             </div>
           </Reveal>
         ))}
@@ -1438,7 +1458,7 @@ export default function App() {
       {!loading && !session && (
         <>
           <Hero session={session} onLogin={signInWithGoogle} language={language} />
-          <Marquee />
+          <Marquee language={language} />
           <Hotels language={language} />
           <Process language={language} />
           <Gallery language={language} />
