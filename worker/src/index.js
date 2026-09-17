@@ -97,7 +97,7 @@ async function listAllAdminDocuments(env, origin) {
     `SELECT id, candidate_id, document_type, file_name, content_type, file_size, created_at
      FROM documents ORDER BY candidate_id, created_at ASC, rowid ASC`,
   ).all()
-  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name&order=created_at.desc&limit=100`, {
+  const candidateResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/candidates?select=candidate_id,full_name,birth_place,birth_date,gender,phone,address,province,city,postal_code,experience&order=created_at.desc&limit=100`, {
     headers: supabaseAdminHeaders(env),
   })
   if (!candidateResponse.ok) {

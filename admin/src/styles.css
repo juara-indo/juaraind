@@ -44,6 +44,12 @@ th, td { padding: 14px 12px; border-bottom: 1px solid #e1d7c4; text-align: left;
 th { color: #6d6258; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 td:first-child { width: 64px; color: #6d6258; }
 td:last-child { width: 190px; }
+.biodata-modal { max-width: 760px; }
+.biodata-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.biodata-grid > div { display: grid; gap: 5px; padding: 12px 14px; background: #f2ead3; border-radius: 10px; }
+.biodata-grid span { color: #6d6258; font-size: 12px; }
+.biodata-grid strong { overflow-wrap: anywhere; }
+.biodata-full { grid-column: 1 / -1; }
 .candidate-cell { vertical-align: middle; }
 .candidate-cell > span, .candidate-cell > strong { display: block; }
 .candidate-cell > strong { margin-top: 3px; }
@@ -61,4 +67,4 @@ td:last-child { width: 190px; }
 .download-all img { width: 125px; height: auto; display: block; }
 .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .75s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (max-width: 760px) { .layout { flex-direction: column; } .panel { width: 100%; } header { align-items: flex-start; } h1 { font-size: 30px; } }
+@media (max-width: 760px) { .layout { flex-direction: column; } .panel { width: 100%; } header { align-items: flex-start; } h1 { font-size: 30px; } .biodata-grid { grid-template-columns: 1fr; } .biodata-full { grid-column: auto; } }
