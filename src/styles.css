@@ -640,16 +640,6 @@ footer a:hover { opacity: 1; color: var(--gold); }
   border-radius: 4px 16px 16px 16px;
   box-shadow: 8px 8px 0 rgba(179,38,30,.12);
 }
-.candidate-mode .candidate-tabs::before {
-  content: 'PUSAT KANDIDAT';
-  position: absolute;
-  bottom: calc(100% + 16px);
-  left: 0;
-  color: var(--crimson);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .2em;
-}
 .candidate-mode .candidate-tabs button {
   min-height: 48px;
   color: rgba(242,234,211,.68);
@@ -706,7 +696,6 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .candidate-mode .apply-btn { border-radius: 3px 14px 14px 14px; box-shadow: 5px 5px 0 rgba(200,147,58,.3); }
 @media (max-width: 760px) {
   .candidate-mode .candidate-tabs { margin-top: 8px; margin-bottom: 28px; }
-  .candidate-mode .candidate-tabs::before { bottom: calc(100% + 10px); }
   .candidate-mode .biodata-layout { grid-template-columns: 1fr; gap: 24px; }
   .candidate-mode .biodata-form { box-shadow: 6px 6px 0 rgba(200,147,58,.14); }
   .candidate-mode .id-card { margin-bottom: 30px; }
