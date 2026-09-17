@@ -123,34 +123,6 @@ function App() {
         folder.file(`${baseName}${count > 1 ? `-${count}` : ''}${extension}`, await response.arrayBuffer())
       }
 
-      const collectiveTypes = (candidate) => [
-        ...(candidate.passport_by_agency ? ['paspor'] : []),
-        ...(candidate.visa_by_agency ? ['visa'] : []),
-      ]
-      const handleCollectiveSelection = (candidate, event) => {
-        const types = collectiveTypes(candidate)
-        const files = Array.from(event.target.files || []).slice(0, types.length)
-        setCollectiveFiles((current) => ({
-          ...current,
-          [candidate.candidate_id]: Object.fromEntries(files.map((file, index) => [types[index], file])),
-        }))
-        event.target.value = ''
-      }
-      const convertCollective = async (candidate) => {
-        const files = collectiveFiles[candidate.candidate_id] || {}
-        const types = collectiveTypes(candidate)
-        const formData = new FormData()
-        types.forEach((type) => {
-          formData.append('files', files[type])
-          formData.append('document_types', type)
-        })
-        try {
-          setError('')
-          await requestForm(`/admin/candidates/${encodeURIComponent(candidate.candidate_id)}/collective`, formData)
-          setCollectiveFiles((current) => ({ ...current, [candidate.candidate_id]: {} }))
-          await loadCandidates()
-        } catch (requestError) { setError(requestError.message) }
-      }
       const blob = await zip.generateAsync({ type: 'blob' })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
@@ -163,6 +135,35 @@ function App() {
     } finally {
       setDownloadingCandidateId(null)
     }
+  }
+
+  const collectiveTypes = (candidate) => [
+    ...(candidate.passport_by_agency ? ['paspor'] : []),
+    ...(candidate.visa_by_agency ? ['visa'] : []),
+  ]
+  const handleCollectiveSelection = (candidate, event) => {
+    const types = collectiveTypes(candidate)
+    const files = Array.from(event.target.files || []).slice(0, types.length)
+    setCollectiveFiles((current) => ({
+      ...current,
+      [candidate.candidate_id]: Object.fromEntries(files.map((file, index) => [types[index], file])),
+    }))
+    event.target.value = ''
+  }
+  const convertCollective = async (candidate) => {
+    const files = collectiveFiles[candidate.candidate_id] || {}
+    const types = collectiveTypes(candidate)
+    const formData = new FormData()
+    types.forEach((type) => {
+      formData.append('files', files[type])
+      formData.append('document_types', type)
+    })
+    try {
+      setError('')
+      await requestForm(`/admin/candidates/${encodeURIComponent(candidate.candidate_id)}/collective`, formData)
+      setCollectiveFiles((current) => ({ ...current, [candidate.candidate_id]: {} }))
+      await loadCandidates()
+    } catch (requestError) { setError(requestError.message) }
   }
 
   if (loading) return <main className="center">Memeriksa sesi admin...</main>
