@@ -483,7 +483,15 @@ function useDocuments(session) {
     setDocuments((current) => current.filter((item) => item.id !== document.id))
   }
 
-  return { documents, loading, error, upload, download, remove, submitApplication }
+  const getDocumentUrl = async (document) => {
+    const response = await fetch(`${documentsApiUrl}/documents/${encodeURIComponent(document.id)}`, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+    if (!response.ok) throw new Error('Gagal memuat dokumen.')
+    return URL.createObjectURL(await response.blob())
+  }
+
+  return { documents, loading, error, upload, download, getDocumentUrl, remove, submitApplication }
 }
 
 /* ---------------- Komponen: scroll reveal ---------------- */
@@ -669,7 +677,7 @@ function Gallery() {
 /* ---------------- Auth + Dashboard ---------------- */
 function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut }) {
   const { cand, loading: candLoading, updateProfile } = useCandidate(session)
-  const { documents, loading: documentsLoading, error: documentsError, upload, download, remove, submitApplication } = useDocuments(session)
+  const { documents, loading: documentsLoading, error: documentsError, upload, download, getDocumentUrl, remove, submitApplication } = useDocuments(session)
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState({})
@@ -684,6 +692,29 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
   const [activeTab, setActiveTab] = useState('profile')
   const [isEditing, setIsEditing] = useState(true)
   const { provinces, cities } = useRegionOptions(form)
+  const [avatarUrl, setAvatarUrl] = useState('')
+
+  useEffect(() => {
+    let active = true
+    const pasPhoto = documents.find((document) => document.document_type === 'pas_photo')
+    if (!pasPhoto) {
+      setAvatarUrl('')
+      return undefined
+    }
+    getDocumentUrl(pasPhoto)
+      .then((url) => {
+        if (active) setAvatarUrl(url)
+        else URL.revokeObjectURL(url)
+      })
+      .catch(() => { if (active) setAvatarUrl('') })
+    return () => {
+      active = false
+      setAvatarUrl((current) => {
+        if (current) URL.revokeObjectURL(current)
+        return ''
+      })
+    }
+  }, [documents])
 
   React.useEffect(() => {
     if (cand) {
@@ -896,7 +927,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                 <button className="signout" onClick={signOut}>Keluar</button>
               </div>
               <div className="avatar-column">
-                <AvatarIcon />
+                {avatarUrl ? <img className="avatar avatar-photo" src={avatarUrl} alt="Pas photo kandidat" /> : <AvatarIcon />}
               </div>
             </header>
             <div className="id-content">
