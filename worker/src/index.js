@@ -1,6 +1,6 @@
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png'])
-const ALLOWED_DOCUMENT_TYPES = new Set(['ktp', 'kk', 'ijazah', 'cv', 'paspor', 'visa', 'pendukung'])
+const ALLOWED_DOCUMENT_TYPES = new Set(['ktp', 'kk', 'ijazah', 'cv', 'pas_photo', 'paspor', 'visa', 'pendukung'])
 const REQUIRED_DOCUMENT_TYPES = ['ktp', 'kk', 'ijazah', 'cv']
 const UPLOAD_RATE_WINDOW_MS = 10 * 60 * 1000
 const UPLOAD_RATE_LIMIT_PER_USER = 10
@@ -334,6 +334,9 @@ async function uploadDocuments(request, user, token, env, origin) {
   for (const [index, file] of files.entries()) {
     if (!ALLOWED_DOCUMENT_TYPES.has(documentTypes[index])) return json({ error: 'Jenis dokumen tidak valid.' }, 400, origin)
     if (!ALLOWED_TYPES.has(file.type)) return json({ error: 'Format harus PDF, JPG, atau PNG.' }, 415, origin)
+    if (documentTypes[index] === 'pas_photo' && !['image/jpeg', 'image/png'].includes(file.type)) {
+      return json({ error: 'Pas photo harus berupa JPG atau PNG.' }, 415, origin)
+    }
     if (file.size > MAX_FILE_SIZE) return json({ error: 'Ukuran file maksimal 5 MB.' }, 413, origin)
   }
 

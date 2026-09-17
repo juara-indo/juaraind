@@ -27,6 +27,7 @@ const DocumentIcon = ({ type }) => {
     kk: <><rect x="5" y="4" width="14" height="16" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>,
     ijazah: <><path d="m3 8 9-4 9 4-9 4-9-4Z" /><path d="M6 10v5c3 2 9 2 12 0v-5M12 12v6" /></>,
     cv: <><path d="M7 4h7l4 4v12H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" /><path d="M14 4v5h5M8 13h6M8 16h5" /></>,
+    pas_photo: <><circle cx="12" cy="8" r="3" /><path d="M5 20c.8-4 3.1-6 7-6s6.2 2 7 6" /></>,
     paspor: <><rect x="5" y="3" width="14" height="18" rx="2" /><circle cx="12" cy="10" r="3" /><path d="M7 17h10" /></>,
     visa: <><rect x="4" y="5" width="16" height="14" rx="2" /><path d="M8 9h8M8 13h5M16 16h.01" /></>,
     pendukung: <><path d="M7 4h7l4 4v12H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" /><path d="M14 4v5h5M12 12v6M9 15h6" /></>,
@@ -392,6 +393,7 @@ const documentTypes = [
   { id: 'kk', label: 'KK', hint: 'Kartu keluarga' },
   { id: 'ijazah', label: 'Ijazah terakhir', hint: 'Ijazah pendidikan terakhir' },
   { id: 'cv', label: 'CV', hint: 'Curriculum vitae terbaru' },
+  { id: 'pas_photo', label: 'UPLOAD PAS PHOTO', hint: 'Foto formal terbaru' },
   { id: 'paspor', label: 'Paspor', hint: 'Halaman identitas paspor' },
   { id: 'visa', label: 'Visa', hint: 'Dokumen visa atau izin tinggal' },
   { id: 'pendukung', label: 'Dokumen pendukung', hint: 'Sertifikat atau dokumen lainnya' },
@@ -789,8 +791,9 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
     if (!files.length) return
     setErr('')
     for (const file of files) {
-      if (!allowedDocumentTypes.has(file.type)) {
-        setErr('Format file harus PDF, JPG, atau PNG.')
+      const isPasPhoto = documentType === 'pas_photo'
+      if (!allowedDocumentTypes.has(file.type) || (isPasPhoto && !['image/jpeg', 'image/png'].includes(file.type))) {
+        setErr(isPasPhoto ? 'Pas photo harus berupa JPG atau PNG.' : 'Format file harus PDF, JPG, atau PNG.')
         return
       }
       if (file.size > maxDocumentSize) {
@@ -1143,7 +1146,7 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                         {rejected ? (
                           <label className={`edit-document-btn rejected-edit ${documentBusy ? 'disabled' : ''}`}>
                             Ganti dokumen
-                            <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
+                            <input type="file" multiple={documentType.id === 'pendukung'} accept={documentType.id === 'pas_photo' ? '.jpg,.jpeg,.png,image/jpeg,image/png' : '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'} onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
                           </label>
                         ) : ready ? (
                           <span className="upload-btn upload-status" aria-label="Dokumen sudah dipilih">
@@ -1152,13 +1155,13 @@ function AuthSection({ session, loading: sessLoading, signInWithGoogle, signOut 
                         ) : (
                           <label className={`upload-btn ${documentBusy || agencyDocuments[documentType.id] ? 'disabled' : ''}`}>
                             Pilih file
-                            <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
+                            <input type="file" multiple={documentType.id === 'pendukung'} accept={documentType.id === 'pas_photo' ? '.jpg,.jpeg,.png,image/jpeg,image/png' : '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'} onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy || agencyDocuments[documentType.id]} />
                           </label>
                         )}
                         {ready && !rejected && !agencyDocuments[documentType.id] && !accepted && (
                           <label className="edit-document-btn">
                             Edit
-                            <input type="file" multiple={documentType.id === 'pendukung'} accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
+                            <input type="file" multiple={documentType.id === 'pendukung'} accept={documentType.id === 'pas_photo' ? '.jpg,.jpeg,.png,image/jpeg,image/png' : '.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png'} onChange={(event) => handleDocumentSelect(event, documentType.id)} disabled={documentBusy} />
                           </label>
                         )}
                         {(documentType.id === 'paspor' || documentType.id === 'visa') && (

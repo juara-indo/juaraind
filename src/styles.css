@@ -358,7 +358,7 @@ a { color: inherit; }
   width: 100vw; margin: 0 0 26px calc((100% - 100vw) / 2); min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) max-content;
   column-gap: 28px; align-items: start;
   position: sticky; top: 0; z-index: 100;
-  box-shadow: 0 10px 24px rgba(20,18,16,0.16);
+  box-shadow: none;
 }
 .id-card::after {
   content: '✦'; position: absolute; right: -18px; top: -34px; font-size: 150px; color: var(--bg); opacity: 0.14;
@@ -382,12 +382,14 @@ a { color: inherit; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-grid .full { grid-column: 1 / -1; }
-.biodata-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: clamp(30px, 6vw, 76px); align-items: start; position: relative; z-index: 1; }
+.biodata-layout { display: grid; grid-template-columns: minmax(280px, 300px) minmax(0, 1fr); gap: clamp(28px, 4vw, 56px); align-items: start; position: relative; z-index: 1; }
 .biodata-aside { padding-top: 12px; }
 .biodata-aside-kicker { color: var(--crimson); font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
-.biodata-aside h2 { font-family: var(--serif); font-size: clamp(34px, 4vw, 48px); font-weight: 450; line-height: .98; letter-spacing: -.03em; margin: 16px 0 18px; }
+.biodata-aside h2 { font-family: var(--serif); font-size: clamp(34px, 3.5vw, 46px); font-weight: 450; line-height: .98; letter-spacing: -.03em; margin: 16px 0 18px; }
 .biodata-aside h2 em { color: var(--crimson); font-style: italic; }
 .biodata-aside > p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.7; }
+.candidate-mode .biodata-layout { grid-template-columns: minmax(300px, 320px) minmax(0, 1fr); gap: clamp(24px, 3vw, 40px); }
+.candidate-mode .biodata-aside h2 { max-width: 100%; font-size: clamp(32px, 2.8vw, 38px); overflow-wrap: anywhere; }
 .completion-card { margin-top: 38px; padding-top: 16px; border-top: 1px solid var(--line); }
 .completion-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--ink-soft); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 .completion-top strong { color: var(--crimson); font-size: 14px; }
@@ -618,6 +620,86 @@ footer a:hover { opacity: 1; color: var(--gold); }
   .form-heading { align-items: flex-start; flex-direction: column; gap: 7px; }
   .form-heading p { white-space: normal; }
   .biodata-form .submit-btn { width: 100%; }
+}
+
+/* ---------- Dashboard kandidat / area admin ---------- */
+.candidate-section {
+  background:
+    radial-gradient(circle at 8% 12%, rgba(200,147,58,.13), transparent 24rem),
+    var(--bg);
+}
+.auth-wrap.candidate-mode {
+  max-width: 1160px;
+}
+.candidate-mode .candidate-tabs {
+  position: relative;
+  max-width: 620px;
+  margin: 0 auto 34px;
+  padding: 6px;
+  background: var(--night);
+  border: 0;
+  border-radius: 4px 16px 16px 16px;
+  box-shadow: none;
+}
+.candidate-mode .candidate-tabs button {
+  min-height: 48px;
+  color: rgba(242,234,211,.68);
+  border-radius: 3px 10px 10px 10px;
+}
+.candidate-mode .candidate-tabs button:hover { color: var(--bg); background: rgba(242,234,211,.1); }
+.candidate-mode .candidate-tabs button.is-active {
+  color: var(--night);
+  background: var(--gold);
+  box-shadow: none;
+}
+.candidate-mode .candidate-tabs button.is-active span { color: var(--crimson-deep); }
+.candidate-mode .id-card {
+  margin-bottom: 38px;
+  border-bottom: 4px solid var(--gold);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(200,147,58,.3), transparent 18rem),
+    linear-gradient(110deg, var(--night), #2a1815 64%, var(--crimson-deep));
+  box-shadow: none;
+}
+.candidate-mode .id-label { color: var(--gold); font-weight: 700; letter-spacing: .23em; }
+.candidate-mode .id-value { color: var(--bg); font-size: clamp(30px, 4vw, 48px); }
+.candidate-mode .id-hint { color: rgba(242,234,211,.7); }
+.candidate-mode .candidate-header .avatar { border-color: var(--gold); box-shadow: 0 0 0 5px rgba(200,147,58,.15); }
+.candidate-mode .biodata-layout { grid-template-columns: minmax(300px, 320px) minmax(0, 1fr); gap: clamp(24px, 3vw, 40px); }
+.candidate-mode .biodata-aside h2 { max-width: 100%; font-size: clamp(32px, 2.8vw, 38px); overflow-wrap: anywhere; }
+.candidate-mode .biodata-form {
+  padding: clamp(25px, 4vw, 42px);
+  border-radius: 4px 24px 24px 24px;
+  background: rgba(250,246,236,.9);
+  box-shadow: 10px 10px 0 rgba(200,147,58,.14), 0 16px 44px rgba(60,40,20,.07);
+}
+.candidate-mode .form-heading h3 { font-size: 32px; }
+.candidate-mode .field input,
+.candidate-mode .field select,
+.candidate-mode .field textarea,
+.candidate-mode .custom-select-trigger,
+.candidate-mode .searchable-select > input { border-radius: 4px 12px 12px 12px; background: #fffdf8; }
+.candidate-mode .documents-card { padding-top: 34px; }
+.candidate-mode .documents-head { align-items: flex-end; padding-bottom: 4px; }
+.candidate-mode .documents-head .field-label { color: var(--crimson); font-weight: 800; }
+.candidate-mode .document-slot {
+  min-height: 76px;
+  padding: 15px 17px;
+  border-radius: 3px 14px 14px 14px;
+  background: rgba(250,246,236,.72);
+  transition: transform .25s var(--ease), border-color .25s, background .25s, box-shadow .25s;
+}
+.candidate-mode .document-slot:hover { transform: translateX(4px); border-color: rgba(179,38,30,.35); background: var(--paper); box-shadow: 5px 5px 0 rgba(200,147,58,.13); }
+.candidate-mode .document-slot.is-rejected { box-shadow: 4px 4px 0 rgba(179,38,30,.12); }
+.candidate-mode .document-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(179,38,30,.1); }
+.candidate-mode .upload-btn { border-radius: 3px 10px 10px 10px; background: var(--night); }
+.candidate-mode .upload-btn:hover { background: var(--crimson); }
+.candidate-mode .apply-btn { border-radius: 3px 14px 14px 14px; box-shadow: 5px 5px 0 rgba(200,147,58,.3); }
+@media (max-width: 760px) {
+  .candidate-mode .candidate-tabs { margin-top: 8px; margin-bottom: 28px; }
+  .candidate-mode .biodata-layout { grid-template-columns: 1fr; gap: 24px; }
+  .candidate-mode .biodata-form { box-shadow: 6px 6px 0 rgba(200,147,58,.14); }
+  .candidate-mode .id-card { margin-bottom: 30px; }
 }
 
 :where(button, input, textarea, select):focus-visible {
