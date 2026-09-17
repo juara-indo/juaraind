@@ -135,7 +135,7 @@ async function listAllAdminDocuments(env, origin) {
       candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
         const application = applicationByCandidate.get(candidate.candidate_id)
         const account = accountByCandidate.get(candidate.candidate_id) || {
-          passport_fee: 0, visa_fee: 0, departure_fee: 20000000,
+          passport_fee: 0, visa_fee: 0, departure_fee: 0,
         }
         return {
           ...candidate,
@@ -579,7 +579,7 @@ async function listAdminFinanceEndpoint(env, origin) {
   return json({
     candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
       const application = applicationByCandidate.get(candidate.candidate_id)
-      const account = accountByCandidate.get(candidate.candidate_id) || { passport_fee: 0, visa_fee: 0, departure_fee: 20000000 }
+      const account = accountByCandidate.get(candidate.candidate_id) || { passport_fee: 0, visa_fee: 0, departure_fee: 0 }
       return {
         ...candidate,
         passport_by_agency: Boolean(application.passport_by_agency),
