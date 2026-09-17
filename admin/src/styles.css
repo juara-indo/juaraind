@@ -56,7 +56,7 @@ td:last-child { width: 190px; }
 .modal-title-group { display: flex; align-items: center; gap: 18px; min-width: 0; }
 .modal-header h2 { margin: 6px 0 4px; }
 .modal-header p { color: #6d6258; }
-.download-all { margin-bottom: 0; background: transparent; color: #b3261e; padding: 0; width: 129px; height: 129px; flex: 0 0 129px; }
+.download-all { margin-bottom: 0; background: transparent; color: #b3261e; padding: 0; width: auto; height: auto; flex: 0 0 auto; line-height: 0; }
 .download-all:hover { background: transparent; color: #8d1d18; }
 .download-all img { width: 125px; height: 125px; display: block; }
 .spinner { width: 17px; height: 17px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .75s linear infinite; }
