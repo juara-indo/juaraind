@@ -152,6 +152,19 @@ async function uploadAdminCollectiveDocuments(request, candidateId, env, origin)
   ).bind(candidateId, ...documentTypes).all()
   if (existing.results.length) return json({ error: 'Dokumen kolektif sudah dikonversi.' }, 409, origin)
 
+  const claims = await env.DB.batch(documentTypes.map((type) => env.DB.prepare(
+    'INSERT OR IGNORE INTO collective_document_claims (candidate_id, document_type) VALUES (?, ?)',
+  ).bind(candidateId, type)))
+  const claimedTypes = claims.map((result) => result.meta?.changes || 0)
+  if (claimedTypes.some((changes) => changes !== 1)) {
+    await env.DB.batch(documentTypes.map((type, index) => claimedTypes[index] === 1
+      ? env.DB.prepare(
+        'DELETE FROM collective_document_claims WHERE candidate_id = ? AND document_type = ?',
+      ).bind(candidateId, type)
+      : env.DB.prepare('SELECT 1')))
+    return json({ error: 'Konversi dokumen sedang diproses atau sudah dilakukan.' }, 409, origin)
+  }
+
   const uploaded = []
   try {
     for (const [index, file] of files.entries()) {
@@ -173,6 +186,9 @@ async function uploadAdminCollectiveDocuments(request, candidateId, env, origin)
       if (document) await env.DOCUMENTS.delete(document.object_key)
       await env.DB.prepare('DELETE FROM documents WHERE id = ?').bind(item.id).run()
     }))
+    await env.DB.batch(documentTypes.map((type) => env.DB.prepare(
+      'DELETE FROM collective_document_claims WHERE candidate_id = ? AND document_type = ?',
+    ).bind(candidateId, type)))
     throw error
   }
   return json({ documents: uploaded }, 201, origin)
