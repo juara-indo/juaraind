@@ -17,6 +17,8 @@ button.documents-button { padding: 8px 12px; font-size: 12px; line-height: 1.2; 
 .biodata-button.is-incomplete { background: #c88713; }
 .biodata-button.is-incomplete:hover { background: #a66d0c; }
 .biodata-button.is-complete { background: #b3261e; }
+.documents-status-button.is-incomplete { background: #c88713; }
+.documents-status-button.is-complete { background: #b3261e; }
 .collective-button:disabled { background: #d6c9ae; color: #6d6258; cursor: not-allowed; }
 .collective-button.is-ready { background: #b3261e; }
 .collective-modal { max-width: 560px; }
