@@ -443,6 +443,38 @@ async function reviewAdminDocument(request, id, env, origin) {
   return json({ id, validation_status: status }, 200, origin)
 }
 
+async function normalizeCandidateStorage(candidateId, env, origin) {
+  const { results } = await env.DB.prepare(
+    `SELECT id, object_key FROM documents WHERE candidate_id = ? ORDER BY created_at ASC, rowid ASC`,
+  ).bind(candidateId).all()
+  const candidateFolder = safeObjectSegment(candidateId)
+  const moved = []
+
+  for (const document of results) {
+    const expectedPrefix = `documents/${candidateFolder}/`
+    if (document.object_key.startsWith(expectedPrefix)) continue
+
+    const source = await env.DOCUMENTS.get(document.object_key)
+    if (!source) throw new Error(`Object dokumen tidak ditemukan: ${document.object_key}`)
+
+    const fileName = document.object_key.split('/').pop() || document.id
+    const destination = `${expectedPrefix}${fileName}`
+    if (await env.DOCUMENTS.head(destination)) {
+      throw new Error(`Object tujuan sudah ada: ${destination}`)
+    }
+
+    await env.DOCUMENTS.put(destination, source.body, {
+      httpMetadata: source.httpMetadata,
+      customMetadata: source.customMetadata,
+    })
+    await env.DB.prepare('UPDATE documents SET object_key = ? WHERE id = ?').bind(destination, document.id).run()
+    await env.DOCUMENTS.delete(document.object_key)
+    moved.push({ id: document.id, object_key: destination })
+  }
+
+  return json({ candidate_id: candidateId, moved }, 200, origin)
+}
+
 export default {
   async fetch(request, env) {
     const origin = requestOrigin(request, env)
@@ -479,6 +511,11 @@ export default {
       if (adminDownloadMatch && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return downloadAdminDocument(decodeURIComponent(adminDownloadMatch[1]), env, origin)
+      }
+      const normalizeStorageMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/normalize-storage$/)
+      if (normalizeStorageMatch && request.method === 'POST') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return normalizeCandidateStorage(decodeURIComponent(normalizeStorageMatch[1]), env, origin)
       }
       if (url.pathname === '/documents' && request.method === 'GET') {
         return listDocuments(user.id, env, origin)
