@@ -32,18 +32,6 @@ jobs:
           VITE_DOCUMENTS_API_URL: ${{ secrets.VITE_DOCUMENTS_API_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
           VITE_MAINTENANCE_MODE: 'false'
-      - name: Install admin dependencies
-        run: npm ci --prefix admin
-      - name: Build admin application
-        run: npm run build --prefix admin
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_DOCUMENTS_API_URL: ${{ secrets.VITE_DOCUMENTS_API_URL }}
-      - name: Include admin application
-        run: |
-          mkdir -p dist/admin
-          cp -R admin/dist/. dist/admin/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
