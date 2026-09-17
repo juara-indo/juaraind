@@ -608,12 +608,17 @@ footer a:hover { opacity: 1; color: var(--gold); }
   .candidate-tabs { margin-bottom: 18px; }
   .candidate-tabs button { font-size: 12px; }
   .document-slot { grid-template-columns: minmax(0, 1fr) auto; }
-  .document-slot .slot-upload-btn { grid-column: 1 / -1; width: 100%; }
+  .document-slot .upload-btn { grid-column: 1 / -1; width: 100%; }
   .documents-head, .document-list li { align-items: stretch; flex-direction: column; }
   .upload-btn { align-self: flex-start; }
   .document-actions { justify-content: flex-start; }
   .document-apply { align-items: stretch; flex-direction: column; }
   .apply-btn { width: 100%; }
+}
+
+@media (max-width: 560px) {
+  .language-select select { width: 148px; }
+  .nav-cta { width: 152px; padding-inline: 12px; }
 }
 
 @media (max-width: 760px) {
