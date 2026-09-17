@@ -67,11 +67,13 @@ function App() {
     const supabase = getSupabase()
     if (!supabase) { setLoading(false); return undefined }
     const loadSession = async () => {
-      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession()
-      const { data } = refreshError
-        ? await supabase.auth.getSession()
-        : refreshed
-      if (mounted) { setSession(data.session); setLoading(false) }
+      const { data } = await supabase.auth.getSession()
+      if (!mounted) return
+      setSession(data.session)
+      setLoading(false)
+      if (!data.session) return
+      const { data: refreshed } = await supabase.auth.refreshSession()
+      if (mounted && refreshed.session) setSession(refreshed.session)
     }
     loadSession()
     const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
