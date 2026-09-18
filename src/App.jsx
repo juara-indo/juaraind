@@ -941,6 +941,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const [financeError, setFinanceError] = useState('')
   const [proofFiles, setProofFiles] = useState({})
   const [proofBusy, setProofBusy] = useState('')
+  const [showFeeDetails, setShowFeeDetails] = useState(false)
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState({})
@@ -974,6 +975,15 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   }
 
   useEffect(() => { loadFinance() }, [session?.access_token])
+
+  useEffect(() => {
+    if (!showFeeDetails) return undefined
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setShowFeeDetails(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [showFeeDetails])
 
   const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
   const proofFor = (paymentId, invoiceId) => finance?.payment_proofs?.find((proof) => (paymentId && proof.payment_id === paymentId) || (invoiceId && proof.invoice_id === invoiceId))
@@ -1638,11 +1648,22 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                   const total = fees.reduce((sum, item) => sum + Number(item[1] || 0), 0)
                   const paid = (finance.payments || []).reduce((sum, item) => sum + Number(item.amount || 0), 0)
                   return <><div className="finance-summary">
-                    <div><span>Total biaya</span><strong>{money(total)}</strong></div>
+                    <button type="button" className="finance-total-card" onClick={() => setShowFeeDetails(true)} aria-haspopup="dialog">
+                      <span>Total biaya</span><strong>{money(total)}</strong><small>Lihat rincian biaya</small>
+                    </button>
                     <div><span>Sudah dibayar</span><strong className="finance-paid">{money(paid)}</strong></div>
                     <div><span>Sisa tagihan</span><strong className="finance-balance">{money(Math.max(total - paid, 0))}</strong></div>
                   </div>
-                  <div className="finance-breakdown">{fees.map(([label, value]) => <div key={label}><span>{label}</span><strong>{money(value)}</strong></div>)}</div></>
+                  {showFeeDetails && <div className="fee-modal-backdrop" role="presentation" onClick={() => setShowFeeDetails(false)}>
+                    <section className="fee-modal" role="dialog" aria-modal="true" aria-labelledby="fee-details-title" onClick={(event) => event.stopPropagation()}>
+                      <div className="fee-modal-header">
+                        <div><div className="field-label">Rincian biaya</div><h3 id="fee-details-title">Total biaya kandidat</h3></div>
+                        <button type="button" className="fee-modal-close" onClick={() => setShowFeeDetails(false)} aria-label="Tutup rincian biaya">×</button>
+                      </div>
+                      <div className="fee-detail-list">{fees.map(([label, value]) => <div key={label}><span>{label}</span><strong>{money(value)}</strong></div>)}</div>
+                      <div className="fee-detail-total"><span>Total</span><strong>{money(total)}</strong></div>
+                    </section>
+                  </div>}</>
                 })()}
                 <div className="next-step-panel"><div className="field-label">Langkah berikutnya</div><strong>{finance.next_step?.status || 'Menunggu pembaruan'}</strong><p>{finance.next_step?.message || 'Tim Juara akan menghubungi Anda jika ada informasi baru.'}</p></div>
                 <div className="payment-list"><h3>Riwayat pembayaran</h3>
