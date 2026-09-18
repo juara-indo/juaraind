@@ -251,9 +251,9 @@ function App() {
     const invoiceRows = (candidate.invoices || []).map((invoice, index) => {
       const proof = financeProofs.find((item) => item.invoice_id === invoice.id)
       const status = invoice.status === 'paid'
-        ? 'Pembayaran diterima'
+        ? 'Diterima'
         : proof?.status === 'pending'
-          ? 'Bukti menunggu review'
+          ? 'Review'
           : proof?.status === 'rejected'
             ? 'Bukti ditolak'
             : 'Belum dibayar'
