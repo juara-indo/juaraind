@@ -401,10 +401,11 @@ async function uploadDocuments(request, user, token, env, origin) {
   const form = await request.formData()
   const files = form.getAll('files')
   const documentTypes = form.getAll('document_types').map(String)
+  const documentNames = form.getAll('document_names').map(String)
   if (!files.length || files.some((file) => !(file instanceof File))) {
     return json({ error: 'File dokumen wajib dipilih.' }, 400, origin)
   }
-  if (files.length !== documentTypes.length || files.length > 10) {
+  if (files.length !== documentTypes.length || files.length !== documentNames.length || files.length > 10) {
     return json({ error: 'Data dokumen tidak valid.' }, 400, origin)
   }
   for (const [index, file] of files.entries()) {
@@ -429,24 +430,26 @@ async function uploadDocuments(request, user, token, env, origin) {
     for (const [index, file] of files.entries()) {
       const id = crypto.randomUUID()
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-110) || 'document'
+      const customName = documentTypes[index] === 'pendukung' ? documentNames[index].trim().replace(/[^a-zA-Z0-9._ -]/g, '_').slice(0, 100) : ''
+      if (documentTypes[index] === 'pendukung' && !customName) throw new Error('Nama dokumen pendukung wajib diisi.')
       const candidateFolder = safeObjectSegment(candidate.candidate_id)
       const documentLabel = safeObjectSegment(documentTypes[index]).toUpperCase()
       const extensionIndex = safeName.lastIndexOf('.')
-      const nameBase = extensionIndex > 0 ? safeName.slice(0, extensionIndex) : safeName
+      const nameBase = customName || (extensionIndex > 0 ? safeName.slice(0, extensionIndex) : safeName)
       const extension = extensionIndex > 0 ? safeName.slice(extensionIndex) : ''
       const objectName = `${documentLabel}-${nameBase}-${id.slice(0, 8)}${extension}`
       const objectKey = `documents/${candidateFolder}/${objectName}`
       await env.DOCUMENTS.put(objectKey, file.stream(), {
         httpMetadata: { contentType: file.type },
       })
-      uploaded.push({ id, objectKey, file, documentType: documentTypes[index] })
+      uploaded.push({ id, objectKey, file, documentType: documentTypes[index], documentName: customName })
     }
     for (const item of uploaded) {
       await env.DB.prepare(
         `INSERT INTO documents
          (id, user_id, candidate_id, document_type, object_key, file_name, content_type, file_size)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(item.id, user.id, candidate.candidate_id, item.documentType, item.objectKey, item.file.name, item.file.type, item.file.size).run()
+      ).bind(item.id, user.id, candidate.candidate_id, item.documentType, item.objectKey, item.documentName || item.file.name, item.file.type, item.file.size).run()
       insertedIds.push(item.id)
     }
     for (const previous of previousDocuments) {

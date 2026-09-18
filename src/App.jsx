@@ -654,11 +654,12 @@ function useDocuments(session) {
     refresh().catch(() => undefined)
   }, [session])
 
-  const upload = async (files, turnstileToken, documentTypes) => {
+  const upload = async (files, turnstileToken, documentTypes, documentNames = []) => {
     const body = new FormData()
     files.forEach((file, index) => {
       body.append('files', file)
       body.append('document_types', documentTypes[index])
+      body.append('document_names', documentNames[index] || '')
     })
     await request('/documents', {
       method: 'POST',
@@ -1081,20 +1082,22 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
     }
     const files = []
     const documentTypes = []
+    const documentNames = []
     Object.entries(selectedDocuments).forEach(([documentType, selected]) => {
       const selectedFiles = documentType === 'pendukung' ? selected : [selected]
       selectedFiles.filter(Boolean).forEach((file) => {
         files.push(file)
         documentTypes.push(documentType)
+        documentNames.push('')
       })
     })
     supportingDocuments.forEach((item) => {
       if (!item.file) return
       const customName = item.name.trim()
       if (!customName) return
-      const extension = item.file.name.includes('.') ? `.${item.file.name.split('.').pop()}` : ''
-      files.push(new File([item.file], `${customName}${extension}`, { type: item.file.type, lastModified: item.file.lastModified }))
+      files.push(item.file)
       documentTypes.push('pendukung')
+      documentNames.push(customName)
     })
     if (!files.length) return
     setErr('')
@@ -1104,7 +1107,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
     }
     setDocumentBusy(true)
     try {
-      await upload(files, turnstileToken, documentTypes)
+      await upload(files, turnstileToken, documentTypes, documentNames)
       setSelectedDocuments({})
       setSupportingDocuments([])
       setTurnstileToken('')
