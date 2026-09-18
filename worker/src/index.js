@@ -850,10 +850,10 @@ async function updateCandidateNextStep(request, candidateId, env, origin) {
 }
 
 async function listAdminEmailAccounts(env, origin) {
-  const host = String(env.CPANEL_HOST || '').trim()
+  const host = String(env.CPANEL_HOST || 'toscana.id.rapidplex.com').trim()
   const username = String(env.CPANEL_USERNAME || '').trim()
   const token = String(env.CPANEL_API_TOKEN || '').trim()
-  const domain = String(env.CPANEL_EMAIL_DOMAIN || '').trim()
+  const domain = String(env.CPANEL_EMAIL_DOMAIN || 'juaraind.com').trim()
   const missing = [
     !host && 'CPANEL_HOST',
     !username && 'CPANEL_USERNAME',
@@ -865,7 +865,7 @@ async function listAdminEmailAccounts(env, origin) {
       configured: false,
       accounts: [],
       missing,
-      webmail_url: env.WEBMAIL_URL || null,
+      webmail_url: env.WEBMAIL_URL || `https://${host}:2096`,
     }, 200, origin)
   }
 
