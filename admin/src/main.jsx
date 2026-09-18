@@ -232,9 +232,9 @@ function App() {
         <strong>{formatCurrency(invoice.amount)}</strong>
         <small>{invoice.description || invoice.invoice_number}<br /><span className={`finance-invoice-status status-${invoice.status} ${proof ? `proof-${proof.status}` : ''}`}>{status}</span></small>
         <div className="finance-history-actions">
-          {proof && <button className="documents-button invoice-button" onClick={() => openProof(proof)}>Lihat bukti</button>}
+          <button className="documents-button invoice-button" onClick={() => openInvoiceForInvoice(candidate, invoice)}>Invoice</button>
+          {proof && <button className="documents-button invoice-button" onClick={() => openProof(proof)}>Preview</button>}
           {proof?.status === 'pending' && <button className="documents-button invoice-button" onClick={() => reviewProof(proof, 'accepted')}>Accept</button>}
-          {!proof && <span className="finance-proof-awaiting">Menunggu bukti transfer</span>}
         </div>
       </div>
     })
@@ -298,6 +298,22 @@ function App() {
       candidate,
       payment,
       installmentNumber: paymentIndex + 1,
+      paidThrough,
+      remaining: Math.max(financeTotal(candidate) - paidThrough, 0),
+    })
+  }
+  const openInvoiceForInvoice = (candidate, invoice) => {
+    const installmentNumber = Number(invoice.description?.match(/\d+/)?.[0]) || financeNextInstallment(candidate)
+    const amount = Number(invoice.amount) || 0
+    const paidThrough = financePaid(candidate)
+    setSelectedInvoice({
+      candidate,
+      payment: {
+        amount,
+        payment_date: invoice.due_date || invoice.created_at?.slice(0, 10),
+        note: invoice.description || 'Pembayaran cicilan',
+      },
+      installmentNumber,
       paidThrough,
       remaining: Math.max(financeTotal(candidate) - paidThrough, 0),
     })
