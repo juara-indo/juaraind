@@ -606,8 +606,8 @@ const documentTypes = [
   { id: 'kk', label: 'KK', hint: 'Kartu keluarga' },
   { id: 'ijazah', label: 'Ijazah terakhir', hint: 'Ijazah pendidikan terakhir' },
   { id: 'cv', label: 'CV', hint: 'Curriculum vitae terbaru' },
-  { id: 'pendukung', label: 'Dokumen pendukung', hint: 'Sertifikat atau dokumen lainnya' },
   { id: 'pas_photo', label: 'UPLOAD PAS PHOTO', hint: 'Foto formal terbaru' },
+  { id: 'pendukung', label: 'Dokumen pendukung', hint: 'Sertifikat atau dokumen lainnya' },
   { id: 'paspor', label: 'Paspor', hint: 'Halaman identitas paspor' },
   { id: 'visa', label: 'Visa', hint: 'Dokumen visa atau izin tinggal' },
 ]
@@ -907,6 +907,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState({})
+  const [supportingDocuments, setSupportingDocuments] = useState([])
   const [turnstileToken, setTurnstileToken] = useState('')
   const [agencyDocuments, setAgencyDocuments] = useState({ paspor: false, visa: false })
   const [applying, setApplying] = useState(false)
@@ -1030,6 +1031,31 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
         setErr(isPasPhoto ? 'Pas photo harus berupa JPG atau PNG.' : 'Format file harus PDF, JPG, atau PNG.')
         return
       }
+
+      const addSupportingDocument = () => {
+        setSupportingDocuments((current) => [...current, { id: `${Date.now()}-${current.length}`, name: '', file: null }])
+        setErr('')
+      }
+
+      const updateSupportingDocument = (id, field, value) => {
+        setSupportingDocuments((current) => current.map((item) => item.id === id ? { ...item, [field]: value } : item))
+      }
+
+      const handleSupportingFileSelect = (event, id) => {
+        const file = event.target.files?.[0]
+        event.target.value = ''
+        if (!file) return
+        if (!allowedDocumentTypes.has(file.type)) {
+          setErr('Format file harus PDF, JPG, atau PNG.')
+          return
+        }
+        if (file.size > maxDocumentSize) {
+          setErr('Ukuran file maksimal 5 MB.')
+          return
+        }
+        updateSupportingDocument(id, 'file', file)
+        setErr('')
+      }
       if (file.size > maxDocumentSize) {
         setErr('Ukuran file maksimal 5 MB.')
         return
@@ -1049,6 +1075,10 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   }
 
   const handleBatchUpload = async () => {
+    if (supportingDocuments.some((item) => Boolean(item.file) !== Boolean(item.name.trim()))) {
+      setErr('Lengkapi nama dan file untuk setiap dokumen pendukung.')
+      return
+    }
     const files = []
     const documentTypes = []
     Object.entries(selectedDocuments).forEach(([documentType, selected]) => {
@@ -1057,6 +1087,14 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
         files.push(file)
         documentTypes.push(documentType)
       })
+    })
+    supportingDocuments.forEach((item) => {
+      if (!item.file) return
+      const customName = item.name.trim()
+      if (!customName) return
+      const extension = item.file.name.includes('.') ? `.${item.file.name.split('.').pop()}` : ''
+      files.push(new File([item.file], `${customName}${extension}`, { type: item.file.type, lastModified: item.file.lastModified }))
+      documentTypes.push('pendukung')
     })
     if (!files.length) return
     setErr('')
@@ -1068,6 +1106,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
     try {
       await upload(files, turnstileToken, documentTypes)
       setSelectedDocuments({})
+      setSupportingDocuments([])
       setTurnstileToken('')
     } catch (error) {
       setErr(error.message)
@@ -1098,7 +1137,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const canApply = requiredDocumentTypes.every(documentReady) && !documentBusy && !applying && !applied
   const hasPendingDocuments = Object.values(selectedDocuments).some((selected) => (
     Array.isArray(selected) ? selected.length > 0 : Boolean(selected)
-  ))
+  )) || supportingDocuments.some((item) => item.file || item.name.trim())
 
   const handleApply = async () => {
     if (!canApply) return
@@ -1364,6 +1403,40 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                     const accepted = hasAcceptedDocument(documentType.id)
                     const rejected = !accepted && !files.length && hasRejectedDocument(documentType.id)
                     const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
+                    if (documentType.id === 'pendukung') {
+                      return (
+                        <div className="document-slot supporting-document-slot" key={documentType.id}>
+                          <div className="document-slot-info">
+                            <span className="document-number">{String(index + 1).padStart(2, '0')}</span>
+                            <DocumentIcon type="pendukung" />
+                            <strong>{documentType.label}</strong>
+                            <span>{stored ? 'Dokumen tersimpan' : 'Tambahkan dokumen lain jika diperlukan'}</span>
+                          </div>
+                          <button className="supporting-add-btn" type="button" onClick={addSupportingDocument} disabled={documentBusy}>+</button>
+                          {supportingDocuments.length > 0 && (
+                            <div className="supporting-document-list">
+                              {supportingDocuments.map((item, itemIndex) => (
+                                <div className="supporting-document-row" key={item.id}>
+                                  <span className="supporting-document-number">{itemIndex + 1}</span>
+                                  <input
+                                    type="text"
+                                    value={item.name}
+                                    onChange={(event) => updateSupportingDocument(item.id, 'name', event.target.value)}
+                                    placeholder="Nama dokumen"
+                                    maxLength={120}
+                                    disabled={documentBusy}
+                                  />
+                                  <label className={`upload-btn ${documentBusy ? 'disabled' : ''}`}>
+                                    {item.file ? 'File dipilih' : 'Pilih file'}
+                                    <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleSupportingFileSelect(event, item.id)} disabled={documentBusy} />
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }
                     return (
                       <div className={`document-slot ${rejected ? 'is-rejected' : ''} ${documentType.id === 'paspor' ? 'is-special-start' : ''}`} key={documentType.id}>
                         <div className="document-slot-info">
