@@ -718,6 +718,10 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .supporting-document-list { grid-column: 1 / -1; display: grid; gap: 9px; padding-top: 4px; }
 .supporting-document-row { display: grid; grid-template-columns: 24px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.55); }
 .supporting-document-number { color: var(--crimson); font-size: 12px; font-weight: 800; text-align: center; }
+.supporting-document-name { min-width: 0; display: grid; gap: 3px; }
+.supporting-document-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.supporting-document-name small { color: #2f7d32; font-size: 11px; font-weight: 700; }
+.supporting-document-stored { border-color: rgba(47,125,50,.28); background: rgba(47,125,50,.06); }
 .supporting-document-row input[type="text"] { min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); }
 .supporting-document-row .upload-btn { min-width: 104px; }
 .candidate-mode .document-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(179,38,30,.1); }

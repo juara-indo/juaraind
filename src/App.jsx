@@ -1408,6 +1408,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                     const rejected = !accepted && !files.length && hasRejectedDocument(documentType.id)
                     const ready = stored || files.length > 0 || agencyDocuments[documentType.id]
                     if (documentType.id === 'pendukung') {
+                      const storedSupportingDocuments = documents.filter((document) => document.document_type === 'pendukung')
                       return (
                         <div className="document-slot supporting-document-slot" key={documentType.id}>
                           <div className="document-slot-info">
@@ -1417,11 +1418,21 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                             <span>{stored ? 'Dokumen tersimpan' : 'Tambahkan dokumen lain jika diperlukan'}</span>
                           </div>
                           <button className="supporting-add-btn" type="button" onClick={addSupportingDocument} disabled={documentBusy}>+</button>
-                          {supportingDocuments.length > 0 && (
+                          {(storedSupportingDocuments.length > 0 || supportingDocuments.length > 0) && (
                             <div className="supporting-document-list">
+                              {storedSupportingDocuments.map((document, storedIndex) => (
+                                <div className="supporting-document-row supporting-document-stored" key={document.id}>
+                                  <span className="supporting-document-number">{storedIndex + 1}</span>
+                                  <div className="supporting-document-name">
+                                    <strong>{document.file_name}</strong>
+                                    <small>Dokumen tersimpan</small>
+                                  </div>
+                                  <span className="upload-btn upload-status" aria-label="Dokumen sudah tersimpan">OK</span>
+                                </div>
+                              ))}
                               {supportingDocuments.map((item, itemIndex) => (
                                 <div className="supporting-document-row" key={item.id}>
-                                  <span className="supporting-document-number">{itemIndex + 1}</span>
+                                  <span className="supporting-document-number">{storedSupportingDocuments.length + itemIndex + 1}</span>
                                   <input
                                     type="text"
                                     value={item.name}
