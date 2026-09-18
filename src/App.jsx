@@ -1033,30 +1033,6 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
         return
       }
 
-      const addSupportingDocument = () => {
-        setSupportingDocuments((current) => [...current, { id: `${Date.now()}-${current.length}`, name: '', file: null }])
-        setErr('')
-      }
-
-      const updateSupportingDocument = (id, field, value) => {
-        setSupportingDocuments((current) => current.map((item) => item.id === id ? { ...item, [field]: value } : item))
-      }
-
-      const handleSupportingFileSelect = (event, id) => {
-        const file = event.target.files?.[0]
-        event.target.value = ''
-        if (!file) return
-        if (!allowedDocumentTypes.has(file.type)) {
-          setErr('Format file harus PDF, JPG, atau PNG.')
-          return
-        }
-        if (file.size > maxDocumentSize) {
-          setErr('Ukuran file maksimal 5 MB.')
-          return
-        }
-        updateSupportingDocument(id, 'file', file)
-        setErr('')
-      }
       if (file.size > maxDocumentSize) {
         setErr('Ukuran file maksimal 5 MB.')
         return
@@ -1068,6 +1044,31 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
         ? [...(current[documentType] || []), ...files]
         : files[0],
     }))
+  }
+
+  const addSupportingDocument = () => {
+    setSupportingDocuments((current) => [...current, { id: `${Date.now()}-${current.length}`, name: '', file: null }])
+    setErr('')
+  }
+
+  const updateSupportingDocument = (id, field, value) => {
+    setSupportingDocuments((current) => current.map((item) => item.id === id ? { ...item, [field]: value } : item))
+  }
+
+  const handleSupportingFileSelect = (event, id) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    if (!allowedDocumentTypes.has(file.type)) {
+      setErr('Format file harus PDF, JPG, atau PNG.')
+      return
+    }
+    if (file.size > maxDocumentSize) {
+      setErr('Ukuran file maksimal 5 MB.')
+      return
+    }
+    updateSupportingDocument(id, 'file', file)
+    setErr('')
   }
 
   const handleTurnstileSuccess = (token) => {
