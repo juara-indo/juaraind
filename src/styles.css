@@ -784,7 +784,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .invoice-preview-modal .invoice-summary > div { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .invoice-preview-modal .invoice-balance { margin-top: 5px; border-top: 2px solid var(--ink); border-bottom: 0; color: var(--crimson); font-size: 16px; font-weight: 800; }
 .invoice-preview-modal .invoice-payment { color: var(--crimson); font-weight: 750; }
-.invoice-preview-modal .invoice-status { margin-top: 20px; padding: 11px 14px; color: var(--crimson-deep); background: rgba(200,147,58,.14); font-size: 12px; letter-spacing: .04em; }
+.invoice-preview-modal .invoice-status { margin-top: 20px; padding: 11px 14px; border: 1px solid currentColor; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: .04em; }.invoice-preview-modal .invoice-status-paid { color: #fff; background: #2f7d32; border-color: #2f7d32; }.invoice-preview-modal .invoice-status-unpaid { color: #fff; background: #b3261e; border-color: #b3261e; }
 .invoice-preview-modal .invoice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .fee-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .fee-modal-header h3 { margin: 5px 0 0; font-family: var(--serif); font-size: 25px; }
