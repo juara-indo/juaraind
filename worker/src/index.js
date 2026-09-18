@@ -870,9 +870,20 @@ async function listAdminEmailAccounts(env, origin) {
   }
 
   const endpoint = `https://${host}:2083/execute/Email/list_pops?api.version=1&domain=${encodeURIComponent(domain)}`
-  const response = await fetch(endpoint, {
-    headers: { Authorization: `cpanel ${username}:${token}` },
-  })
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 15000)
+  let response
+  try {
+    response = await fetch(endpoint, {
+      headers: { Authorization: `cpanel ${username}:${token}` },
+      signal: controller.signal,
+    })
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('Permintaan ke cPanel terlalu lama dan dihentikan.')
+    throw new Error('Tidak dapat terhubung ke cPanel.')
+  } finally {
+    clearTimeout(timeout)
+  }
   const payload = await response.json().catch(() => null)
   if (!response.ok || payload?.result?.status !== 1) {
     console.error('cPanel email account request failed', response.status, payload)
