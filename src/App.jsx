@@ -943,6 +943,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const [proofBusy, setProofBusy] = useState('')
   const [showFeeDetails, setShowFeeDetails] = useState(false)
   const [showPaidDetails, setShowPaidDetails] = useState(false)
+  const [invoicePreview, setInvoicePreview] = useState(null)
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState({})
@@ -978,16 +979,17 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   useEffect(() => { loadFinance() }, [session?.access_token])
 
   useEffect(() => {
-    if (!showFeeDetails && !showPaidDetails) return undefined
+    if (!showFeeDetails && !showPaidDetails && !invoicePreview) return undefined
     const closeOnEscape = (event) => {
       if (event.key === 'Escape') {
         setShowFeeDetails(false)
         setShowPaidDetails(false)
+        setInvoicePreview(null)
       }
     }
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
-  }, [showFeeDetails, showPaidDetails])
+  }, [showFeeDetails, showPaidDetails, invoicePreview])
 
   const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
   const openPaidDetails = () => {
@@ -1018,10 +1020,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
     finally { setProofBusy('') }
   }
   const openInvoice = (invoice) => {
-    const title = invoice.invoice_number || 'Invoice cicilan'
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font:16px Arial;color:#241b18;max-width:720px;margin:50px auto;padding:30px}h1{font-size:28px;border-bottom:3px solid #c8933a;padding-bottom:14px}.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}.amount{font-size:24px;font-weight:bold}@media print{body{margin:0}}</style></head><body><h1>Juara · Invoice Cicilan</h1><div class="row"><span>Nomor invoice</span><strong>${title}</strong></div><div class="row"><span>Jatuh tempo</span><strong>${invoice.due_date || '-'}</strong></div><div class="row"><span>Keterangan</span><strong>${invoice.description || 'Pembayaran cicilan'}</strong></div><div class="row amount"><span>Total tagihan</span><strong>${money(invoice.amount)}</strong></div><p>Dokumen ini dapat disimpan sebagai PDF melalui fitur Save as PDF pada browser.</p></body></html>`
-    const popup = window.open('', '_blank', 'noopener,noreferrer')
-    if (popup) { popup.document.write(html); popup.document.close() }
+    setInvoicePreview(invoice)
   }
 
   useEffect(() => {
@@ -1685,6 +1684,20 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                         {(finance.payments || []).map((payment) => <div key={payment.id}><span>{payment.payment_date} · {payment.note || 'Pembayaran'}</span><strong>{money(payment.amount)}</strong></div>)}
                       </div>
                       <div className="fee-detail-total"><span>Sudah dibayar</span><strong>{money(paid)}</strong></div>
+                    </section>
+                  </div>}
+                  {invoicePreview && <div className="fee-modal-backdrop" role="presentation" onClick={() => setInvoicePreview(null)}>
+                    <section className="fee-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-preview-title" onClick={(event) => event.stopPropagation()}>
+                      <div className="fee-modal-header">
+                        <div><div className="field-label">Preview invoice</div><h3 id="invoice-preview-title">Invoice cicilan</h3></div>
+                        <button type="button" className="fee-modal-close" onClick={() => setInvoicePreview(null)} aria-label="Tutup preview invoice">×</button>
+                      </div>
+                      <div className="fee-detail-list">
+                        <div><span>Nomor invoice</span><strong>{invoicePreview.invoice_number || '-'}</strong></div>
+                        <div><span>Jatuh tempo</span><strong>{invoicePreview.due_date || '-'}</strong></div>
+                        <div><span>Keterangan</span><strong>{invoicePreview.description || 'Pembayaran cicilan'}</strong></div>
+                      </div>
+                      <div className="fee-detail-total"><span>Total tagihan</span><strong>{money(invoicePreview.amount)}</strong></div>
                     </section>
                   </div>}
                   </>
