@@ -655,6 +655,7 @@ async function candidateFinanceEndpoint(user, token, env, origin) {
   ])
   return json({
     candidate_id: candidateId,
+    enabled: Boolean(finance || payments.results.length || invoices.results.length || nextStep),
     finance: finance || { candidate_id: candidateId, passport_fee: 0, visa_fee: 0, departure_fee: 0 },
     payments: payments.results,
     invoices: invoices.results,

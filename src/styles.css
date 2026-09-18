@@ -731,6 +731,22 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .candidate-mode .upload-status,
 .candidate-mode .upload-status:hover { background: var(--night); }
 .candidate-mode .apply-btn { border-radius: 3px 14px 14px 14px; box-shadow: 5px 5px 0 rgba(200,147,58,.3); }
+.finance-card { display: grid; gap: 22px; padding: 10px 0 30px; }
+.finance-refresh, .invoice-btn { border: 1px solid var(--line-strong); border-radius: 8px; padding: 9px 13px; background: var(--paper); color: var(--ink); font-weight: 700; }
+.finance-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.finance-summary > div, .finance-breakdown > div { display: grid; gap: 6px; padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.56); }
+.finance-summary span, .finance-breakdown span, .payment-row span { color: var(--ink-soft); font-size: 12px; }
+.finance-summary strong { font-size: 20px; }
+.finance-paid { color: #2f7d32; }.finance-balance { color: var(--crimson); }
+.finance-breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.next-step-panel { padding: 18px; border-left: 4px solid var(--gold); background: rgba(200,147,58,.1); }
+.next-step-panel strong { display: block; margin: 6px 0; font-size: 18px; }.next-step-panel p { margin: 0; color: var(--ink-soft); }
+.payment-list { display: grid; gap: 10px; }.payment-list h3 { margin: 8px 0 0; font-family: var(--serif); }
+.payment-row { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.6); }
+.payment-row > div:first-child { display: grid; gap: 5px; }.payment-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.proof-file { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 8px; font-size: 12px; cursor: pointer; }.proof-file input { display: none; }
+.proof-status { font-size: 12px; font-weight: 800; }.proof-pending { color: #98610a; }.proof-accepted { color: #2f7d32; }.proof-rejected { color: var(--crimson); }
+@media (max-width: 700px) { .finance-summary, .finance-breakdown { grid-template-columns: 1fr; }.payment-row { align-items: flex-start; flex-direction: column; }.payment-actions { justify-content: flex-start; } }
 @media (max-width: 760px) {
   .candidate-mode .candidate-tabs { margin-top: 8px; margin-bottom: 28px; }
   .candidate-mode .biodata-layout { grid-template-columns: 1fr; gap: 24px; }

@@ -936,6 +936,11 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const copy = landingTranslations[language]
   const { cand, loading: candLoading, updateProfile } = useCandidate(session)
   const { documents, loading: documentsLoading, error: documentsError, agencyDocuments, setAgencyDocuments, upload, download, getDocumentUrl, remove, submitApplication } = useDocuments(session)
+  const [finance, setFinance] = useState(null)
+  const [financeLoading, setFinanceLoading] = useState(false)
+  const [financeError, setFinanceError] = useState('')
+  const [proofFiles, setProofFiles] = useState({})
+  const [proofBusy, setProofBusy] = useState('')
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState({})
@@ -951,6 +956,56 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   const [isEditing, setIsEditing] = useState(true)
   const { provinces, cities } = useRegionOptions(form)
   const [avatarUrl, setAvatarUrl] = useState('')
+
+  const loadFinance = async () => {
+    if (!documentsApiUrl || !session?.access_token) return
+    setFinanceLoading(true)
+    try {
+      const response = await fetch(`${documentsApiUrl}/finance`, { headers: { Authorization: `Bearer ${session.access_token}` } })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(payload?.error || 'Gagal memuat informasi keuangan.')
+      setFinance(payload)
+      setFinanceError('')
+    } catch (error) {
+      setFinanceError(error.message)
+    } finally {
+      setFinanceLoading(false)
+    }
+  }
+
+  useEffect(() => { loadFinance() }, [session?.access_token])
+
+  const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
+  const proofFor = (paymentId, invoiceId) => finance?.payment_proofs?.find((proof) => (paymentId && proof.payment_id === paymentId) || (invoiceId && proof.invoice_id === invoiceId))
+  const uploadProof = async (paymentId, invoiceId) => {
+    const key = paymentId ? `payment:${paymentId}` : `invoice:${invoiceId}`
+    const file = proofFiles[key]
+    if (!file) return
+    setProofBusy(key)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const target = paymentId ? `payments/${encodeURIComponent(paymentId)}` : `invoices/${encodeURIComponent(invoiceId)}`
+      const response = await fetch(`${documentsApiUrl}/finance/${target}/proof`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}`, 'X-Turnstile-Token': turnstileToken },
+        body: formData,
+      })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(payload?.error || 'Gagal mengunggah bukti pembayaran.')
+      setProofFiles((current) => ({ ...current, [key]: null }))
+      setTurnstileToken('')
+      await loadFinance()
+    } catch (error) { setFinanceError(error.message) }
+    finally { setProofBusy('') }
+  }
+  const openInvoice = (payment) => {
+    const invoice = finance?.invoices?.find((item) => item.id === payment.invoice_id)
+    const title = invoice?.invoice_number || `Pembayaran ${payment.id}`
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font:16px Arial;color:#241b18;max-width:720px;margin:50px auto;padding:30px}h1{font-size:28px;border-bottom:3px solid #c8933a;padding-bottom:14px}.row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}.amount{font-size:24px;font-weight:bold}@media print{body{margin:0}}</style></head><body><h1>Juara · Bukti Tagihan</h1><div class="row"><span>Nomor invoice</span><strong>${title}</strong></div><div class="row"><span>Tanggal pembayaran</span><strong>${payment.payment_date || '-'}</strong></div><div class="row"><span>Keterangan</span><strong>${payment.note || invoice?.description || '-'}</strong></div><div class="row amount"><span>Total pembayaran</span><strong>${money(payment.amount)}</strong></div><p>Dokumen ini dapat disimpan sebagai PDF melalui fitur Save as PDF pada browser.</p></body></html>`
+    const popup = window.open('', '_blank', 'noopener,noreferrer')
+    if (popup) { popup.document.write(html); popup.document.close() }
+  }
 
   useEffect(() => {
     if (!documentBusy) return undefined
@@ -1313,6 +1368,9 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                 <button type="button" role="tab" aria-selected={activeTab === 'documents'} className={activeTab === 'documents' ? 'is-active' : ''} onClick={() => setActiveTab('documents')} disabled={documentBusy}>
                   <span>02</span> Upload dokumen
                 </button>
+                {finance?.enabled && <button type="button" role="tab" aria-selected={activeTab === 'finance'} className={activeTab === 'finance' ? 'is-active' : ''} onClick={() => setActiveTab('finance')} disabled={documentBusy}>
+                  <span>03</span> Keuangan
+                </button>}
               </div>
 
               {form && activeTab === 'profile' && (
@@ -1564,6 +1622,43 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                     {(documentBusy || applying) && <span className="apply-spinner" aria-hidden="true" />}
                   </button>
                 </div>
+              </div>}
+              {activeTab === 'finance' && finance?.enabled && <div className="finance-card">
+                <div className="documents-head">
+                  <div><div className="field-label">Ringkasan pembayaran</div><p>Periksa biaya, pembayaran, dan langkah berikutnya dari proses Anda.</p></div>
+                  <button className="finance-refresh" type="button" onClick={loadFinance} disabled={financeLoading}>{financeLoading ? 'Memuat…' : 'Muat ulang'}</button>
+                </div>
+                {financeError && <div className="err-box">{financeError}</div>}
+                {(() => {
+                  const fees = [
+                    ['Paspor', finance.finance?.passport_fee],
+                    ['Visa', finance.finance?.visa_fee],
+                    ['Keberangkatan', finance.finance?.departure_fee],
+                  ]
+                  const total = fees.reduce((sum, item) => sum + Number(item[1] || 0), 0)
+                  const paid = (finance.payments || []).reduce((sum, item) => sum + Number(item.amount || 0), 0)
+                  return <><div className="finance-summary">
+                    <div><span>Total biaya</span><strong>{money(total)}</strong></div>
+                    <div><span>Sudah dibayar</span><strong className="finance-paid">{money(paid)}</strong></div>
+                    <div><span>Sisa tagihan</span><strong className="finance-balance">{money(Math.max(total - paid, 0))}</strong></div>
+                  </div>
+                  <div className="finance-breakdown">{fees.map(([label, value]) => <div key={label}><span>{label}</span><strong>{money(value)}</strong></div>)}</div></>
+                })()}
+                <div className="next-step-panel"><div className="field-label">Langkah berikutnya</div><strong>{finance.next_step?.status || 'Menunggu pembaruan'}</strong><p>{finance.next_step?.message || 'Tim Juara akan menghubungi Anda jika ada informasi baru.'}</p></div>
+                <div className="payment-list"><h3>Riwayat pembayaran</h3>
+                  {(finance.payments || []).length === 0 && <p className="document-note">Belum ada pembayaran tercatat.</p>}
+                  {(finance.payments || []).map((payment) => {
+                    const proof = proofFor(payment.id, payment.invoice_id)
+                    const key = `payment:${payment.id}`
+                    return <article className="payment-row" key={payment.id}>
+                      <div><strong>{money(payment.amount)}</strong><span>{payment.payment_date} · {payment.note || 'Pembayaran'}</span></div>
+                      <div className="payment-actions"><button type="button" className="invoice-btn" onClick={() => openInvoice(payment)}>Lihat / simpan PDF</button>{proof ? <span className={`proof-status proof-${proof.status}`}>{proof.status === 'accepted' ? 'Bukti diterima' : proof.status === 'rejected' ? 'Bukti ditolak' : 'Menunggu review'}</span> : <><label className="proof-file"><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setProofFiles((current) => ({ ...current, [key]: event.target.files?.[0] || null }))} />{proofFiles[key]?.name || 'Pilih bukti'}</label><button type="button" className="invoice-btn" onClick={() => uploadProof(payment.id, null)} disabled={!proofFiles[key] || proofBusy === key}>{proofBusy === key ? 'Mengunggah…' : 'Unggah bukti'}</button></>}</div>
+                    </article>
+                  })}
+                </div>
+                {(finance.invoices || []).some((invoice) => !finance.payments?.some((payment) => payment.invoice_id === invoice.id)) && <div className="payment-list"><h3>Invoice belum dibayar</h3>{finance.invoices.filter((invoice) => !finance.payments?.some((payment) => payment.invoice_id === invoice.id)).map((invoice) => <article className="payment-row" key={invoice.id}><div><strong>{invoice.invoice_number} · {money(invoice.amount)}</strong><span>Jatuh tempo: {invoice.due_date || 'Belum ditentukan'}</span></div><div className="payment-actions"><label className="proof-file"><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setProofFiles((current) => ({ ...current, [`invoice:${invoice.id}`]: event.target.files?.[0] || null }))} />{proofFiles[`invoice:${invoice.id}`]?.name || 'Pilih bukti'}</label><button type="button" className="invoice-btn" onClick={() => uploadProof(null, invoice.id)} disabled={!proofFiles[`invoice:${invoice.id}`] || proofBusy === `invoice:${invoice.id}`}>Unggah bukti</button></div></article>)}</div>}
+                {finance?.enabled && turnstileSiteKey && <div className="turnstile-box"><Turnstile siteKey={turnstileSiteKey} options={{ action: 'finance-proof-upload', theme: 'light' }} onSuccess={handleTurnstileSuccess} onExpire={() => setTurnstileToken('')} onError={() => setTurnstileToken('')} /></div>}
+                {!turnstileSiteKey && <p className="document-note">Upload bukti belum aktif karena Turnstile belum dikonfigurasi.</p>}
               </div>}
             </>
           )}
