@@ -1651,13 +1651,18 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                     ['Biaya lainnya', finance.finance?.other_fee],
                   ]
                   const total = fees.reduce((sum, item) => sum + Number(item[1] || 0), 0)
-                  const paid = (finance.payments || []).reduce((sum, item) => sum + Number(item.amount || 0), 0)
+                  const paidPayments = finance.payments || []
+                  const paid = paidPayments.reduce((sum, item) => sum + Number(item.amount || 0), 0)
                   return <><div className="finance-summary">
                     <button type="button" className="finance-total-card" onClick={() => setShowFeeDetails(true)} aria-haspopup="dialog">
                       <span>Total biaya</span><strong>{money(total)}</strong><small>Lihat rincian biaya</small>
                     </button>
                     <button type="button" className="finance-paid-card" onClick={() => setShowPaidDetails(true)} aria-haspopup="dialog">
-                      <span>Sudah dibayar</span><strong className="finance-paid">{money(paid)}</strong><small>Lihat riwayat pembayaran</small>
+                      <span>Sudah dibayar</span><strong className="finance-paid">{money(paid)}</strong>
+                      <div className="finance-paid-breakdown">
+                        {paidPayments.length === 0 ? <small>Belum ada pembayaran</small> : paidPayments.map((payment) => <small key={payment.id}>{payment.note || 'Pembayaran'} · {money(payment.amount)}</small>)}
+                      </div>
+                      <small>Lihat riwayat pembayaran</small>
                     </button>
                     <div><span>Sisa tagihan</span><strong className="finance-balance">{money(Math.max(total - paid, 0))}</strong></div>
                   </div>

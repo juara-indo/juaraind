@@ -741,6 +741,8 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .finance-paid-card { display: grid; gap: 6px; padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.56); color: var(--ink); text-align: left; cursor: pointer; }
 .finance-paid-card:hover { border-color: #2f7d32; background: var(--paper); }
 .finance-paid-card small { color: #2f7d32; font-size: 11px; font-weight: 700; }
+.finance-paid-breakdown { display: grid; gap: 3px; margin-top: 2px; max-height: 58px; overflow: hidden; }
+.finance-paid-breakdown small { color: var(--ink-soft); font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .finance-summary span, .finance-breakdown span, .payment-row span { color: var(--ink-soft); font-size: 12px; }
 .finance-summary strong { font-size: 20px; }
 .finance-paid { color: #2f7d32; }.finance-balance { color: var(--crimson); }
