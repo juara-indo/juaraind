@@ -658,15 +658,7 @@ async function updateAdminFinanceEndpoint(request, candidateId, env, origin) {
 }
 
 async function addAdminFinancePaymentEndpoint(request, candidateId, env, origin) {
-  const body = await request.json().catch(() => null)
-  const amount = Number(body?.amount)
-  const paymentDate = String(body?.payment_date || '')
-  const note = String(body?.note || '').trim().slice(0, 240)
-  if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(paymentDate)) return json({ error: 'Nominal dan tanggal pembayaran wajib valid.' }, 400, origin)
-  await env.DB.prepare(
-    'INSERT INTO candidate_finance_payments (id, candidate_id, amount, payment_date, note) VALUES (?, ?, ?, ?, ?)',
-  ).bind(crypto.randomUUID(), candidateId, amount, paymentDate, note).run()
-  return json({ ok: true }, 201, origin)
+  return json({ error: 'Pembayaran hanya dapat dicatat setelah bukti transfer diterima admin.' }, 410, origin)
 }
 
 async function candidateFinanceEndpoint(user, token, env, origin) {

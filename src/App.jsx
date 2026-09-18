@@ -1673,7 +1673,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                     const key = `payment:${payment.id}`
                     return <article className="payment-row" key={payment.id}>
                       <div><strong>{money(payment.amount)}</strong><span>{payment.payment_date} · {payment.note || 'Pembayaran'}</span></div>
-                      <div className="payment-actions"><button type="button" className="invoice-btn" onClick={() => openInvoice(payment)}>Lihat / simpan PDF</button>{proof ? <span className={`proof-status proof-${proof.status}`}>{proof.status === 'accepted' ? 'Bukti diterima' : proof.status === 'rejected' ? 'Bukti ditolak' : 'Menunggu review'}</span> : <><label className="proof-file"><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setProofFiles((current) => ({ ...current, [key]: event.target.files?.[0] || null }))} />{proofFiles[key]?.name || 'Pilih bukti'}</label><button type="button" className="invoice-btn" onClick={() => uploadProof(payment.id, null)} disabled={!proofFiles[key] || proofBusy === key}>{proofBusy === key ? 'Mengunggah…' : 'Unggah bukti'}</button></>}</div>
+                      <div className="payment-actions"><button type="button" className="invoice-btn" onClick={() => openInvoice(payment)}>Lihat / simpan PDF</button>{proof && <span className={`proof-status proof-${proof.status}`}>{proof.status === 'accepted' ? 'Bukti diterima' : proof.status === 'rejected' ? 'Bukti ditolak' : 'Menunggu review'}</span>}</div>
                     </article>
                   })}
                 </div>
