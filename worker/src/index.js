@@ -887,7 +887,11 @@ async function listAdminEmailAccounts(env, origin) {
   const payload = await response.json().catch(() => null)
   if (!response.ok || payload?.result?.status !== 1) {
     console.error('cPanel email account request failed', response.status, payload)
-    throw new Error('Gagal mengambil akun email dari cPanel.')
+    const cPanelErrors = Array.isArray(payload?.result?.errors)
+      ? payload.result.errors.filter((error) => typeof error === 'string').join(' ')
+      : ''
+    const detail = cPanelErrors || (response.ok ? 'cPanel menolak permintaan.' : `HTTP ${response.status} dari cPanel.`)
+    throw new Error(`Gagal mengambil akun email dari cPanel: ${detail}`)
   }
   const accounts = Array.isArray(payload?.data) ? payload.data.map((account) => ({
     email: account.email || account.user || '',
