@@ -748,8 +748,13 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .next-step-panel { padding: 18px; border-left: 4px solid var(--gold); background: rgba(200,147,58,.1); }
 .next-step-panel strong { display: block; margin: 6px 0; font-size: 18px; }.next-step-panel p { margin: 0; color: var(--ink-soft); }
 .payment-list { display: grid; gap: 10px; }.payment-list h3 { margin: 8px 0 0; font-family: var(--serif); }
-.payment-row { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.6); }
+.payment-list-header, .payment-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(110px,140px) minmax(190px,auto); gap: 14px; align-items: center; }
+.payment-list-header { padding: 0 14px; color: var(--ink-soft); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.payment-list-header span:nth-child(2), .payment-list-header span:nth-child(3) { text-align: center; }
+.payment-row { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.6); }
 .payment-row > div:first-child { display: grid; gap: 5px; }.payment-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.payment-status { justify-self: center; padding: 6px 10px; border: 1px solid currentColor; border-radius: 999px; font-size: 11px; font-weight: 800; text-align: center; white-space: nowrap; }
+.payment-status-paid { color: #2f7d32; background: rgba(47,125,50,.1); }.payment-status-unpaid { color: #98610a; background: rgba(200,147,58,.1); }
 .proof-file { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: 8px; font-size: 12px; cursor: pointer; }.proof-file input { display: none; }
 .proof-status { font-size: 12px; font-weight: 800; }.proof-pending { color: #98610a; }.proof-accepted { color: #2f7d32; }.proof-rejected { color: var(--crimson); }
 .fee-modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: rgba(25,18,15,.58); }
@@ -785,7 +790,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .fee-detail-list > div, .fee-detail-total { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .fee-detail-list span { color: var(--ink-soft); }.fee-detail-list strong { font-size: 16px; }
 .fee-detail-total { border-bottom: 0; padding-bottom: 0; font-size: 17px; }.fee-detail-total strong { color: var(--crimson); font-size: 22px; }
-@media (max-width: 700px) { .finance-summary, .finance-breakdown { grid-template-columns: 1fr; }.payment-row { align-items: flex-start; flex-direction: column; }.payment-actions { justify-content: flex-start; } }
+@media (max-width: 700px) { .finance-summary, .finance-breakdown { grid-template-columns: 1fr; }.payment-list-header { display: none; }.payment-row { grid-template-columns: 1fr; align-items: flex-start; }.payment-status { justify-self: start; }.payment-actions { justify-content: flex-start; } }
 @media (max-width: 760px) {
   .candidate-mode .candidate-tabs { margin-top: 8px; margin-bottom: 28px; }
   .candidate-mode .biodata-layout { grid-template-columns: 1fr; gap: 24px; }
