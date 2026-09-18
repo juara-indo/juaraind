@@ -1691,17 +1691,6 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                   </>
                 })()}
                 <div className="next-step-panel"><div className="field-label">Langkah berikutnya</div><strong>{finance.next_step?.status || 'Menunggu pembaruan'}</strong><p>{finance.next_step?.message || 'Tim Juara akan menghubungi Anda jika ada informasi baru.'}</p></div>
-                <div className="payment-list"><h3>Riwayat pembayaran</h3>
-                  {(finance.payments || []).length === 0 && <p className="document-note">Belum ada pembayaran tercatat.</p>}
-                  {(finance.payments || []).map((payment) => {
-                    const proof = proofFor(payment.id, payment.invoice_id)
-                    const key = `payment:${payment.id}`
-                    return <article className="payment-row" key={payment.id}>
-                      <div><strong>{money(payment.amount)}</strong><span>{payment.payment_date} · {payment.note || 'Pembayaran'}</span></div>
-                      <div className="payment-actions"><button type="button" className="invoice-btn" onClick={() => openInvoice(payment)}>Lihat / simpan PDF</button>{proof && <span className={`proof-status proof-${proof.status}`}>{proof.status === 'accepted' ? 'Bukti diterima' : proof.status === 'rejected' ? 'Bukti ditolak' : 'Menunggu review'}</span>}</div>
-                    </article>
-                  })}
-                </div>
                 {(finance.invoices || []).some((invoice) => invoice.status === 'open') && <div className="payment-list"><h3>Tagihan cicilan</h3>{finance.invoices.filter((invoice) => invoice.status === 'open').map((invoice) => { const proof = proofFor(null, invoice.id); const key = `invoice:${invoice.id}`; return <article className="payment-row" key={invoice.id}><div><strong>{invoice.invoice_number} · {money(invoice.amount)}</strong><span>{invoice.description || 'Cicilan'} · Jatuh tempo: {invoice.due_date || 'Belum ditentukan'}</span>{proof && <small className={`proof-status proof-${proof.status}`}>{proof.status === 'rejected' ? `Bukti ditolak${proof.review_note ? `: ${proof.review_note}` : ''}` : 'Bukti sedang diverifikasi'}</small>}</div><div className="payment-actions">{(!proof || proof.status === 'rejected') && <><label className="proof-file"><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={(event) => setProofFiles((current) => ({ ...current, [key]: event.target.files?.[0] || null }))} />{proofFiles[key]?.name || 'Pilih bukti'}</label><button type="button" className="invoice-btn" onClick={() => uploadProof(null, invoice.id)} disabled={!proofFiles[key] || proofBusy === key}>{proofBusy === key ? 'Mengunggah…' : 'Unggah bukti'}</button></>}</div></article>})}</div>}
                 {finance?.enabled && turnstileSiteKey && <div className="turnstile-box"><Turnstile siteKey={turnstileSiteKey} options={{ action: 'finance-proof-upload', theme: 'light' }} onSuccess={handleTurnstileSuccess} onExpire={() => setTurnstileToken('')} onError={() => setTurnstileToken('')} /></div>}
                 {!turnstileSiteKey && <p className="document-note">Upload bukti belum aktif karena Turnstile belum dikonfigurasi.</p>}
