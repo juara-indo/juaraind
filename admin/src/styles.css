@@ -26,7 +26,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 /* Finance drawer refinement */
 .finance-drawer-backdrop{background:rgba(20,18,16,.56)}
 .finance-drawer{width:min(720px,calc(100% - 18px));padding:0 34px 42px;border-radius:0 28px 28px 0;box-shadow:24px 0 72px rgba(20,18,16,.28)}
-.finance-drawer .modal-header{position:sticky;top:0;z-index:2;margin:0 -34px 28px;padding:30px 34px 24px;background:linear-gradient(180deg,var(--paper-strong) 82%,rgba(255,250,240,0));border-bottom:1px solid rgba(25,20,16,.08)}
+.finance-drawer .modal-header{position:sticky;top:0;z-index:2;margin:0 -34px 28px;padding:30px 34px 24px;background:var(--paper-strong);border-bottom:1px solid rgba(25,20,16,.12);box-shadow:0 8px 16px rgba(25,20,16,.04)}
 .finance-drawer .modal-header h2{margin:8px 0 7px;font-size:clamp(30px,4vw,42px);line-height:.98}
 .finance-drawer .modal-header p{font-size:12px;letter-spacing:.08em}
 .finance-header-total{display:grid;align-content:center;gap:5px;margin-left:auto;padding:11px 16px;border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
