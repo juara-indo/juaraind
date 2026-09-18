@@ -51,10 +51,11 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-drawer .finance-history-row strong{font-variant-numeric:tabular-nums}
 .finance-drawer .finance-history-row small{font-size:11px}
 .finance-drawer .finance-history-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
-.finance-drawer .finance-invoice-status{display:inline-block;margin-top:4px;font-style:normal;font-weight:700}
-.finance-drawer .finance-invoice-status.status-open{color:var(--ink-soft)}
-.finance-drawer .finance-invoice-status.status-paid{color:#2f7d32}
-.finance-drawer .finance-invoice-status.status-void{color:#b3261e}
+.finance-drawer .finance-invoice-status{display:inline-flex;align-items:center;margin-top:5px;padding:4px 8px;border:1px solid currentColor;border-radius:999px;font-style:normal;font-size:10px;font-weight:800;line-height:1;letter-spacing:.02em}
+.finance-drawer .finance-invoice-status.status-open{color:#98610a;background:rgba(200,147,58,.1)}
+.finance-drawer .finance-invoice-status.status-paid,.finance-drawer .finance-invoice-status.proof-accepted{color:#2f7d32;background:rgba(47,125,50,.1)}
+.finance-drawer .finance-invoice-status.status-void,.finance-drawer .finance-invoice-status.proof-rejected{color:#b3261e;background:rgba(179,38,30,.08)}
+.finance-drawer .finance-invoice-status.proof-pending{color:#98610a;background:rgba(200,147,58,.1)}
 .finance-drawer .finance-invoice-history-row{background:rgba(200,147,58,.06)}
 .finance-drawer .finance-admin-extra{display:grid;gap:14px}
 .finance-drawer .finance-admin-extra h3{margin:0;color:var(--ink);font-size:12px;letter-spacing:.1em;text-transform:uppercase}

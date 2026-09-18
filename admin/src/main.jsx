@@ -230,9 +230,9 @@ function App() {
       return <div className="finance-history-row finance-invoice-history-row" key={`invoice-${invoice.id}`}>
         <span>{invoice.due_date || invoice.created_at?.slice(0, 10) || '-'}</span>
         <strong>{formatCurrency(invoice.amount)}</strong>
-        <small>{invoice.description || invoice.invoice_number}<br /><em className={`finance-invoice-status status-${invoice.status}`}>{status}</em></small>
+        <small>{invoice.description || invoice.invoice_number}<br /><span className={`finance-invoice-status status-${invoice.status} ${proof ? `proof-${proof.status}` : ''}`}>{status}</span></small>
         <div className="finance-history-actions">
-          {proof && <button className="documents-button invoice-button" onClick={() => openProof(proof)}>Preview</button>}
+          {proof && <button className="documents-button invoice-button" onClick={() => openProof(proof)}>Lihat bukti</button>}
           {proof?.status === 'pending' && <button className="documents-button invoice-button" onClick={() => reviewProof(proof, 'accepted')}>Accept</button>}
         </div>
       </div>
