@@ -722,6 +722,8 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .supporting-document-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .supporting-document-name small { color: #2f7d32; font-size: 11px; font-weight: 700; }
 .supporting-document-stored { border-color: rgba(47,125,50,.28); background: rgba(47,125,50,.06); }
+.supporting-document-pending { grid-column: 2 / -1; color: #98610a; font-size: 11px; }
+.supporting-document-row:not(.supporting-document-stored) { border-color: rgba(200,135,19,.45); background: rgba(200,135,19,.08); }
 .supporting-document-row input[type="text"] { min-width: 0; padding: 10px 11px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); }
 .supporting-document-row .upload-btn { min-width: 104px; }
 .candidate-mode .document-icon { width: 34px; height: 34px; border-radius: 9px; background: rgba(179,38,30,.1); }

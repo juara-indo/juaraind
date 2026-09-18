@@ -1428,7 +1428,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                             <span className="document-number">{String(index + 1).padStart(2, '0')}</span>
                             <DocumentIcon type="pendukung" />
                             <strong>{documentType.label}</strong>
-                            <span>{stored ? 'Dokumen tersimpan' : 'Tambahkan dokumen lain jika diperlukan'}</span>
+                            <span>{storedSupportingDocuments.length ? `${storedSupportingDocuments.length} dokumen tersimpan` : 'Tambahkan dokumen lain jika diperlukan'}</span>
                           </div>
                           <button className="supporting-add-btn" type="button" onClick={addSupportingDocument} disabled={documentBusy}>+</button>
                           {(storedSupportingDocuments.length > 0 || supportingDocuments.length > 0) && (
@@ -1455,9 +1455,10 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                                     disabled={documentBusy}
                                   />
                                   <label className={`upload-btn ${documentBusy ? 'disabled' : ''}`}>
-                                    {item.file ? 'File dipilih' : 'Pilih file'}
+                                    {item.file ? 'Siap diunggah' : 'Pilih file'}
                                     <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" onChange={(event) => handleSupportingFileSelect(event, item.id)} disabled={documentBusy} />
                                   </label>
+                                  {item.file && <small className="supporting-document-pending">Menunggu tombol “Unggah semua dokumen” · {item.file.name}</small>}
                                 </div>
                               ))}
                             </div>
