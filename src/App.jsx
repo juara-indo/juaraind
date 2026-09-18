@@ -534,6 +534,14 @@ function useSession() {
 
   const signOut = async () => {
     const supabase = await getSupabase()
+    const userId = (await supabase?.auth.getUser())?.data?.user?.id
+    if (userId) {
+      try {
+        sessionStorage.removeItem(`juara-candidate-${userId}`)
+        sessionStorage.removeItem(`juara-documents-${userId}`)
+        sessionStorage.removeItem(`juara-agency-documents-${userId}`)
+      } catch { /* cache is optional */ }
+    }
     return supabase?.auth.signOut()
   }
   return { session, loading, roleError, signInWithGoogle, signOut }
