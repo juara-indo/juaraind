@@ -614,6 +614,7 @@ const documentTypes = [
 
 function useDocuments(session) {
   const [documents, setDocuments] = useState([])
+  const [agencyDocuments, setAgencyDocuments] = useState({ paspor: false, visa: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -639,6 +640,7 @@ function useDocuments(session) {
     try {
       const payload = await request('/documents')
       setDocuments(payload.documents || [])
+      if (payload.agencyDocuments) setAgencyDocuments(payload.agencyDocuments)
       setError('')
     } catch (requestError) {
       setError(requestError.message)
@@ -707,7 +709,7 @@ function useDocuments(session) {
     return URL.createObjectURL(await response.blob())
   }
 
-  return { documents, loading, error, upload, download, getDocumentUrl, remove, submitApplication }
+  return { documents, loading, error, agencyDocuments, setAgencyDocuments, upload, download, getDocumentUrl, remove, submitApplication }
 }
 
 /* ---------------- Komponen: scroll reveal ---------------- */
@@ -904,13 +906,12 @@ function Gallery({ language }) {
 function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogle, signOut, language = 'id' }) {
   const copy = landingTranslations[language]
   const { cand, loading: candLoading, updateProfile } = useCandidate(session)
-  const { documents, loading: documentsLoading, error: documentsError, upload, download, getDocumentUrl, remove, submitApplication } = useDocuments(session)
+  const { documents, loading: documentsLoading, error: documentsError, agencyDocuments, setAgencyDocuments, upload, download, getDocumentUrl, remove, submitApplication } = useDocuments(session)
   const [form, setForm] = useState(null)
   const [documentBusy, setDocumentBusy] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState({})
   const [supportingDocuments, setSupportingDocuments] = useState([])
   const [turnstileToken, setTurnstileToken] = useState('')
-  const [agencyDocuments, setAgencyDocuments] = useState({ paspor: false, visa: false })
   const [applying, setApplying] = useState(false)
   const [applied, setApplied] = useState(false)
   const [saving, setSaving] = useState(false)

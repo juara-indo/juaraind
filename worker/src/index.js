@@ -355,7 +355,16 @@ async function listDocuments(userId, env, origin) {
     `SELECT id, candidate_id, document_type, file_name, content_type, file_size, validation_status, reviewed_at, created_at
      FROM documents WHERE user_id = ? ORDER BY created_at DESC`,
   ).bind(userId).all()
-  return json({ documents: results }, 200, origin)
+  const application = await env.DB.prepare(
+    'SELECT passport_by_agency, visa_by_agency FROM applications WHERE user_id = ?',
+  ).bind(userId).first()
+  return json({
+    documents: results,
+    agencyDocuments: {
+      paspor: Boolean(application?.passport_by_agency),
+      visa: Boolean(application?.visa_by_agency),
+    },
+  }, 200, origin)
 }
 
 async function submitApplication(request, user, token, env, origin) {
