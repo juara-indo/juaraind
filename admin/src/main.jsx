@@ -234,6 +234,7 @@ function App() {
         <div className="finance-history-actions">
           {proof && <button className="documents-button invoice-button" onClick={() => openProof(proof)}>Lihat bukti</button>}
           {proof?.status === 'pending' && <button className="documents-button invoice-button" onClick={() => reviewProof(proof, 'accepted')}>Accept</button>}
+          {!proof && <span className="finance-proof-awaiting">Menunggu bukti transfer</span>}
         </div>
       </div>
     })

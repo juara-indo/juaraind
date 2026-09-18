@@ -51,6 +51,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-drawer .finance-history-row strong{font-variant-numeric:tabular-nums}
 .finance-drawer .finance-history-row small{font-size:11px}
 .finance-drawer .finance-history-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.finance-drawer .finance-proof-awaiting{color:var(--ink-soft);font-size:10px;font-weight:750;white-space:nowrap}
 .finance-drawer .finance-invoice-status{display:inline-flex;align-items:center;margin-top:5px;padding:4px 8px;border:1px solid currentColor;border-radius:999px;font-style:normal;font-size:10px;font-weight:800;line-height:1;letter-spacing:.02em}
 .finance-drawer .finance-invoice-status.status-open{color:#98610a;background:rgba(200,147,58,.1)}
 .finance-drawer .finance-invoice-status.status-paid,.finance-drawer .finance-invoice-status.proof-accepted{color:#2f7d32;background:rgba(47,125,50,.1)}
