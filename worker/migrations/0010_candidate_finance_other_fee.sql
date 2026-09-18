@@ -1,0 +1,1 @@
+ALTER TABLE candidate_finance ADD COLUMN other_fee INTEGER NOT NULL DEFAULT 0;

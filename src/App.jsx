@@ -1644,6 +1644,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                     ['Paspor', finance.finance?.passport_fee],
                     ['Visa', finance.finance?.visa_fee],
                     ['Keberangkatan', finance.finance?.departure_fee],
+                    ['Biaya lainnya', finance.finance?.other_fee],
                   ]
                   const total = fees.reduce((sum, item) => sum + Number(item[1] || 0), 0)
                   const paid = (finance.payments || []).reduce((sum, item) => sum + Number(item.amount || 0), 0)

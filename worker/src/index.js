@@ -144,7 +144,7 @@ async function listAllAdminDocuments(env, origin) {
       candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
         const application = applicationByCandidate.get(candidate.candidate_id)
         const account = accountByCandidate.get(candidate.candidate_id) || {
-          passport_fee: 0, visa_fee: 0, departure_fee: 0,
+          passport_fee: 0, visa_fee: 0, departure_fee: 0, other_fee: 0,
         }
         return {
           ...candidate,
@@ -153,6 +153,7 @@ async function listAllAdminDocuments(env, origin) {
           passport_fee: Number(account.passport_fee),
           visa_fee: Number(account.visa_fee),
           departure_fee: Number(account.departure_fee),
+          other_fee: Number(account.other_fee),
           payments: paymentsByCandidate.get(candidate.candidate_id) || [],
           invoices: invoicesByCandidate.get(candidate.candidate_id) || [],
         }
@@ -165,15 +166,16 @@ async function listAllAdminDocuments(env, origin) {
     const passportFee = Number(body?.passport_fee)
     const visaFee = Number(body?.visa_fee)
     const departureFee = Number(body?.departure_fee)
-    if (![passportFee, visaFee, departureFee].every((value) => Number.isInteger(value) && value >= 0)) {
+    const otherFee = Number(body?.other_fee)
+    if (![passportFee, visaFee, departureFee, otherFee].every((value) => Number.isInteger(value) && value >= 0)) {
       return json({ error: 'Nominal biaya harus berupa angka bulat yang valid.' }, 400, origin)
     }
     await env.DB.prepare(
-      `INSERT INTO candidate_finance (candidate_id, passport_fee, visa_fee, departure_fee, updated_at)
-       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `INSERT INTO candidate_finance (candidate_id, passport_fee, visa_fee, departure_fee, other_fee, updated_at)
+       VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
        ON CONFLICT(candidate_id) DO UPDATE SET passport_fee = excluded.passport_fee,
-       visa_fee = excluded.visa_fee, departure_fee = excluded.departure_fee, updated_at = CURRENT_TIMESTAMP`,
-    ).bind(candidateId, passportFee, visaFee, departureFee).run()
+       visa_fee = excluded.visa_fee, departure_fee = excluded.departure_fee, other_fee = excluded.other_fee, updated_at = CURRENT_TIMESTAMP`,
+    ).bind(candidateId, passportFee, visaFee, departureFee, otherFee).run()
     return json({ ok: true }, 200, origin)
   }
 
@@ -629,7 +631,7 @@ async function listAdminFinanceEndpoint(env, origin) {
   return json({
     candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
       const application = applicationByCandidate.get(candidate.candidate_id)
-      const account = accountByCandidate.get(candidate.candidate_id) || { passport_fee: 0, visa_fee: 0, departure_fee: 0 }
+      const account = accountByCandidate.get(candidate.candidate_id) || { passport_fee: 0, visa_fee: 0, departure_fee: 0, other_fee: 0 }
       return {
         ...candidate,
         passport_by_agency: Boolean(application.passport_by_agency),
@@ -637,6 +639,7 @@ async function listAdminFinanceEndpoint(env, origin) {
         passport_fee: Number(account.passport_fee),
         visa_fee: Number(account.visa_fee),
         departure_fee: Number(account.departure_fee),
+        other_fee: Number(account.other_fee),
         payments: paymentsByCandidate.get(candidate.candidate_id) || [],
         invoices: invoicesByCandidate.get(candidate.candidate_id) || [],
       }
@@ -646,13 +649,13 @@ async function listAdminFinanceEndpoint(env, origin) {
 
 async function updateAdminFinanceEndpoint(request, candidateId, env, origin) {
   const body = await request.json().catch(() => null)
-  const values = [Number(body?.passport_fee), Number(body?.visa_fee), Number(body?.departure_fee)]
+  const values = [Number(body?.passport_fee), Number(body?.visa_fee), Number(body?.departure_fee), Number(body?.other_fee)]
   if (!values.every((value) => Number.isInteger(value) && value >= 0)) return json({ error: 'Nominal biaya harus berupa angka bulat yang valid.' }, 400, origin)
   await env.DB.prepare(
-    `INSERT INTO candidate_finance (candidate_id, passport_fee, visa_fee, departure_fee, updated_at)
-     VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `INSERT INTO candidate_finance (candidate_id, passport_fee, visa_fee, departure_fee, other_fee, updated_at)
+     VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
      ON CONFLICT(candidate_id) DO UPDATE SET passport_fee = excluded.passport_fee,
-     visa_fee = excluded.visa_fee, departure_fee = excluded.departure_fee, updated_at = CURRENT_TIMESTAMP`,
+     visa_fee = excluded.visa_fee, departure_fee = excluded.departure_fee, other_fee = excluded.other_fee, updated_at = CURRENT_TIMESTAMP`,
   ).bind(candidateId, ...values).run()
   return json({ ok: true }, 200, origin)
 }
@@ -667,7 +670,7 @@ async function candidateFinanceEndpoint(user, token, env, origin) {
   const candidateId = candidate.candidate_id
   const [finance, payments, invoices, proofs, nextStep] = await Promise.all([
     env.DB.prepare(
-      'SELECT candidate_id, passport_fee, visa_fee, departure_fee, updated_at FROM candidate_finance WHERE candidate_id = ?',
+      'SELECT candidate_id, passport_fee, visa_fee, departure_fee, other_fee, updated_at FROM candidate_finance WHERE candidate_id = ?',
     ).bind(candidateId).first(),
     env.DB.prepare(
       'SELECT id, candidate_id, amount, payment_date, note, created_at FROM candidate_finance_payments WHERE candidate_id = ? ORDER BY payment_date DESC, created_at DESC',
@@ -687,7 +690,7 @@ async function candidateFinanceEndpoint(user, token, env, origin) {
   return json({
     candidate_id: candidateId,
     enabled: Boolean(finance || payments.results.length || invoices.results.length || nextStep),
-    finance: finance || { candidate_id: candidateId, passport_fee: 0, visa_fee: 0, departure_fee: 0 },
+    finance: finance || { candidate_id: candidateId, passport_fee: 0, visa_fee: 0, departure_fee: 0, other_fee: 0 },
     payments: payments.results,
     invoices: invoices.results,
     payment_proofs: proofs.results,
