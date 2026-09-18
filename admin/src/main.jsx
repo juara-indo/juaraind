@@ -209,16 +209,6 @@ function App() {
       await loadFinance()
     } catch (requestError) { setError(requestError.message) }
   }
-  const openProof = async (proof) => {
-    try {
-      const response = await fetch(`${apiUrl}/admin/finance/proofs/${encodeURIComponent(proof.id)}/file`, { headers: authHeaders() })
-      if (!response.ok) throw new Error('Bukti pembayaran tidak dapat dibuka.')
-      const url = URL.createObjectURL(await response.blob())
-      window.open(url, '_blank', 'noopener,noreferrer')
-      setTimeout(() => URL.revokeObjectURL(url), 60000)
-    } catch (requestError) { setError(requestError.message) }
-  }
-
   const previewFinanceProof = async (proof) => {
     try {
       setError('')
@@ -272,7 +262,7 @@ function App() {
         <small>{invoiceDisplayNumber(candidate, invoice, index)}<br /><span className={`finance-invoice-status status-${invoice.status} ${proof ? `proof-${proof.status}` : ''}`}>{status}</span></small>
         <div className="finance-history-actions">
           <button className="documents-button invoice-button" onClick={() => openInvoiceForInvoice(candidate, invoice)}>Invoice</button>
-          <button className="documents-button invoice-button" disabled={!proof} title={proof ? 'Preview bukti transfer' : 'Menunggu bukti transfer kandidat'} onClick={() => proof && openProof(proof)}>Preview</button>
+          <button className="documents-button invoice-button" disabled={!proof} title={proof ? 'Preview bukti transfer' : 'Menunggu bukti transfer kandidat'} onClick={() => proof && previewFinanceProof(proof)}>Preview</button>
           <button className="documents-button invoice-button finance-accept-button" disabled={!proof || proof.status !== 'pending'} title={!proof ? 'Menunggu bukti transfer kandidat' : proof.status === 'pending' ? 'Terima bukti transfer' : 'Bukti sudah diproses'} onClick={() => proof && reviewProof(proof, 'accepted')}>Accept</button>
         </div>
       </div>
