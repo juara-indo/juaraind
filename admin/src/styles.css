@@ -122,3 +122,9 @@ h1{margin-top:4px}
 .eyebrow{font-size:10px;letter-spacing:.16em}
 .admin-title{margin-top:4px;font-size:clamp(24px,3vw,38px)}
 .candidate-count{margin-top:6px;font-size:12px}
+.pagination-controls{display:flex;align-items:center;gap:4px;margin-top:4px;color:var(--ink-soft);font-size:10px;line-height:1}
+.pagination-controls button{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;color:var(--ink);background:transparent;border:1px solid var(--line-strong);border-radius:4px;font-size:14px;line-height:1}
+.pagination-controls button:disabled{color:var(--ink-soft);opacity:.4;cursor:not-allowed}
+.pagination-controls span{min-width:24px;text-align:center}
+.pagination-controls label{display:inline-flex;align-items:center;gap:3px;margin-left:4px}
+.pagination-controls select{height:18px;padding:0 2px;color:var(--ink);background:transparent;border:1px solid var(--line-strong);border-radius:3px;font-size:10px}
