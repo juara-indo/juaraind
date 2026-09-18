@@ -61,6 +61,19 @@ function App() {
     sessionStorage.setItem('juara-admin-tab', tab)
     setActiveTabState(tab)
   }
+  const signOut = async () => {
+    try {
+      sessionStorage.removeItem('juara-admin-candidates')
+      sessionStorage.removeItem('juara-admin-finance')
+      sessionStorage.removeItem('juara-admin-tab')
+    } catch {
+      // sessionStorage is optional and may be unavailable in private browsing.
+    }
+    setCandidates([])
+    setFinanceCandidates([])
+    setActiveTabState('candidates')
+    return getSupabase()?.auth.signOut()
+  }
 
   useEffect(() => {
     const modalOpen = Boolean(selectedCandidate || selectedBiodata || selectedCollectiveCandidate || selectedPreview || selectedFinanceCandidate || selectedInvoice)
@@ -338,7 +351,7 @@ function App() {
   if (!session) return <Login />
   return (
     <main>
-      <header><div><span className="eyebrow">PT. JUARA · ADMIN</span><h1 className="admin-title">{activeTab === 'finance' ? 'Keuangan kandidat' : 'Dokumen kandidat'}</h1><p className="candidate-count">{activeTab === 'finance' ? `${financeCandidates.length} kandidat kolektif` : `${candidates.length} peserta`}</p></div><div className="header-actions"><button className="icon-button reload-button" aria-label="Muat ulang peserta" title="Muat ulang peserta" onClick={activeTab === 'finance' ? loadFinance : loadCandidates}><img src="/reload.svg" alt="" /></button><button onClick={() => getSupabase()?.auth.signOut()}>Keluar</button></div></header>
+      <header><div><span className="eyebrow">PT. JUARA · ADMIN</span><h1 className="admin-title">{activeTab === 'finance' ? 'Keuangan kandidat' : 'Dokumen kandidat'}</h1><p className="candidate-count">{activeTab === 'finance' ? `${financeCandidates.length} kandidat kolektif` : `${candidates.length} peserta`}</p></div><div className="header-actions"><button className="icon-button reload-button" aria-label="Muat ulang peserta" title="Muat ulang peserta" onClick={activeTab === 'finance' ? loadFinance : loadCandidates}><img src="/reload.svg" alt="" /></button><button onClick={signOut}>Keluar</button></div></header>
       <nav className="admin-tabs" aria-label="Menu admin"><button className={activeTab === 'candidates' ? 'active' : ''} onClick={() => setActiveTab('candidates')}>Dokumen kandidat</button><button className={activeTab === 'finance' ? 'active' : ''} onClick={() => setActiveTab('finance')}>Keuangan kolektif</button></nav>
       {error && <p className="error">{error}</p>}
       {activeTab === 'candidates' ? <section className="panel"><div className="table-wrap"><table className="candidate-table"><thead><tr><th>No</th><th>Kandidat</th><th>Biodata</th><th>Kolektif</th><th>Dokumen</th></tr></thead><tbody>{candidates.map((candidate, index) => { const biodataComplete = isBiodataComplete(candidate); const documentsComplete = isDocumentsComplete(candidate); const types = collectiveTypes(candidate); const files = collectiveFiles[candidate.candidate_id] || {}; const collectiveDone = types.length > 0 && types.every((type) => candidate.documents.some((document) => document.document_type === type)); return <tr key={candidate.candidate_id}><td>{index + 1}</td><td className="candidate-cell"><span className="candidate-name">{candidate.full_name || 'Nama belum diisi'}</span><strong className="candidate-id">{candidate.candidate_id}</strong></td><td><button className={`documents-button biodata-button ${biodataComplete ? 'is-complete' : 'is-incomplete'}`} title={biodataComplete ? 'Biodata lengkap' : 'Biodata belum lengkap'} onClick={() => setSelectedBiodata(candidate)}>Biodata</button></td><td>{!types.length || collectiveDone ? <button className="documents-button collective-button" disabled>Tidak aktif</button> : <button className={`documents-button collective-button ${files[types[0]] ? 'is-ready' : ''}`} onClick={() => setSelectedCollectiveCandidate(candidate)}>Upload</button>}</td><td><button className={`documents-button documents-status-button ${documentsComplete ? 'is-complete' : 'is-incomplete'}`} title={documentsComplete ? 'Dokumen lengkap' : 'Dokumen belum lengkap'} onClick={() => setSelectedCandidate(candidate)}>Lihat dokumen <span className="document-count">({candidate.documents.length})</span></button></td></tr> })}</tbody></table></div>{!candidates.length && <div className="empty">Belum ada peserta.</div>}</section> : <section className="panel"><div className="table-wrap"><table><thead><tr><th>No</th><th>Kandidat</th><th>Paspor</th><th>Visa</th><th>Keberangkatan</th><th>Dibayar</th><th>Sisa</th><th>Aksi</th></tr></thead><tbody>{financeCandidates.map((candidate, index) => { const total = financeTotal(candidate); const paid = financePaid(candidate); return <tr key={candidate.candidate_id}><td>{index + 1}</td><td className="candidate-cell"><span className="candidate-name">{candidate.full_name || 'Nama belum diisi'}</span><strong className="candidate-id">{candidate.candidate_id}</strong></td><td>{candidate.passport_by_agency ? formatCurrency(candidate.passport_fee) : '-'}</td><td>{candidate.visa_by_agency ? formatCurrency(candidate.visa_fee) : '-'}</td><td>{formatCurrency(candidate.departure_fee)}</td><td>{formatCurrency(paid)}</td><td className={paid >= total ? 'finance-paid' : 'finance-due'}>{formatCurrency(Math.max(total - paid, 0))}</td><td><button className="documents-button" onClick={() => openFinance(candidate)}>Kelola</button></td></tr>})}</tbody></table></div>{!financeCandidates.length && <div className="empty">Belum ada kandidat dengan jasa kolektif.</div>}</section>}

@@ -481,6 +481,17 @@ function useSession() {
   const [loading, setLoading] = useState(true)
   const [roleError, setRoleError] = useState('')
 
+  const clearCandidateCache = (userId) => {
+    if (!userId) return
+    try {
+      sessionStorage.removeItem(`juara-candidate-${userId}`)
+      sessionStorage.removeItem(`juara-documents-${userId}`)
+      sessionStorage.removeItem(`juara-agency-documents-${userId}`)
+    } catch {
+      // sessionStorage is optional and may be unavailable in private browsing.
+    }
+  }
+
   const validateRole = async (nextSession, supabase) => {
     if (!nextSession) {
       setRoleError('')
@@ -494,6 +505,7 @@ function useSession() {
     if (!response.ok) return true
     const payload = await response.json()
     if (payload.role !== 'admin') return true
+    clearCandidateCache(nextSession.user.id)
     await supabase.auth.signOut()
     setRoleError('Akun ini terdaftar sebagai Admin dan tidak dapat digunakan untuk area peserta. Gunakan halaman Admin.')
     return false
@@ -534,14 +546,7 @@ function useSession() {
 
   const signOut = async () => {
     const supabase = await getSupabase()
-    const userId = (await supabase?.auth.getUser())?.data?.user?.id
-    if (userId) {
-      try {
-        sessionStorage.removeItem(`juara-candidate-${userId}`)
-        sessionStorage.removeItem(`juara-documents-${userId}`)
-        sessionStorage.removeItem(`juara-agency-documents-${userId}`)
-      } catch { /* cache is optional */ }
-    }
+    clearCandidateCache(session?.user?.id)
     return supabase?.auth.signOut()
   }
   return { session, loading, roleError, signInWithGoogle, signOut }
