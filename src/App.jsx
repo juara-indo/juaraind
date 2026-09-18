@@ -577,7 +577,7 @@ function useCandidate(session) {
       if (alive) { setCand(data || cachedCandidate); setLoading(false) }
     })()
     return () => { alive = false }
-  }, [session])
+  }, [session?.user?.id])
 
   const updateProfile = async (fields) => {
     if (!session) return { error: null }
@@ -613,7 +613,11 @@ const documentTypes = [
 ]
 
 function useDocuments(session) {
-  const [documents, setDocuments] = useState([])
+  const cacheKey = session?.user?.id ? `juara-documents-${session.user.id}` : ''
+  const readCachedDocuments = () => {
+    try { return cacheKey ? JSON.parse(sessionStorage.getItem(cacheKey) || '[]') : [] } catch { return [] }
+  }
+  const [documents, setDocuments] = useState(readCachedDocuments)
   const [agencyDocuments, setAgencyDocuments] = useState(() => {
     try {
       return session?.user?.id
@@ -623,7 +627,7 @@ function useDocuments(session) {
       return { paspor: false, visa: false }
     }
   })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => readCachedDocuments().length === 0)
   const [error, setError] = useState('')
 
   const request = async (path, options = {}) => {
@@ -647,8 +651,13 @@ function useDocuments(session) {
     setLoading(true)
     try {
       const payload = await request('/documents')
-      setDocuments(payload.documents || [])
-      if (payload.agencyDocuments) setAgencyDocuments(payload.agencyDocuments)
+      const nextDocuments = payload.documents || []
+      setDocuments(nextDocuments)
+      try { if (cacheKey) sessionStorage.setItem(cacheKey, JSON.stringify(nextDocuments)) } catch { /* cache is optional */ }
+      if (payload.agencyDocuments) {
+        setAgencyDocuments(payload.agencyDocuments)
+        try { if (session?.user?.id) sessionStorage.setItem(`juara-agency-documents-${session.user.id}`, JSON.stringify(payload.agencyDocuments)) } catch { /* cache is optional */ }
+      }
       setError('')
     } catch (requestError) {
       setError(requestError.message)
@@ -659,10 +668,9 @@ function useDocuments(session) {
   }
 
   useEffect(() => {
-    setDocuments([])
     if (!session || !documentsApiUrl) return
     refresh().catch(() => undefined)
-  }, [session])
+  }, [session?.user?.id])
 
   const upload = async (files, turnstileToken, documentTypes, documentNames = []) => {
     const body = new FormData()
