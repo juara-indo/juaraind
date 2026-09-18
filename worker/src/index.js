@@ -849,6 +849,37 @@ async function updateCandidateNextStep(request, candidateId, env, origin) {
   return json({ candidate_id: candidateId, status, message }, 200, origin)
 }
 
+async function listAdminEmailAccounts(env, origin) {
+  const host = String(env.CPANEL_HOST || '').trim()
+  const username = String(env.CPANEL_USERNAME || '').trim()
+  const token = String(env.CPANEL_API_TOKEN || '').trim()
+  const domain = String(env.CPANEL_EMAIL_DOMAIN || '').trim()
+  if (!host || !username || !token || !domain) {
+    return json({ configured: false, accounts: [], webmail_url: env.WEBMAIL_URL || null }, 200, origin)
+  }
+
+  const endpoint = `https://${host}:2083/execute/Email/list_pops?api.version=1&domain=${encodeURIComponent(domain)}`
+  const response = await fetch(endpoint, {
+    headers: { Authorization: `cpanel ${username}:${token}` },
+  })
+  const payload = await response.json().catch(() => null)
+  if (!response.ok || payload?.result?.status !== 1) {
+    console.error('cPanel email account request failed', response.status, payload)
+    throw new Error('Gagal mengambil akun email dari cPanel.')
+  }
+  const accounts = Array.isArray(payload?.data) ? payload.data.map((account) => ({
+    email: account.email || account.user || '',
+    login: account.login || account.user || '',
+    disk_used: account.diskused || account.diskusedpercent || null,
+    quota: account.diskquota || null,
+  })) : []
+  return json({
+    configured: true,
+    accounts,
+    webmail_url: env.WEBMAIL_URL || `https://${host}:2096`,
+  }, 200, origin)
+}
+
 export default {
   async fetch(request, env) {
     const origin = requestOrigin(request, env)
@@ -862,6 +893,10 @@ export default {
       if (url.pathname === '/admin/candidates' && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return listAdminCandidates(request, env, origin)
+      }
+      if (url.pathname === '/admin/email/accounts' && request.method === 'GET') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return listAdminEmailAccounts(env, origin)
       }
       if (url.pathname === '/account/role' && request.method === 'GET') {
         if (isAdminUser(user, env)) return json({ role: 'admin' }, 200, origin)
