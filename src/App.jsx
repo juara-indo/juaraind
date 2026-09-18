@@ -992,6 +992,7 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
   }, [showFeeDetails, showPaidDetails, invoicePreview])
 
   const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
+  const dateDisplay = (value) => value ? new Date(`${value.slice(0, 10)}T00:00:00`).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-'
   const openPaidDetails = () => {
     setShowFeeDetails(false)
     setShowPaidDetails(true)
@@ -1686,18 +1687,14 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
                       <div className="fee-detail-total"><span>Sudah dibayar</span><strong>{money(paid)}</strong></div>
                     </section>
                   </div>}
-                  {invoicePreview && <div className="fee-modal-backdrop" role="presentation" onClick={() => setInvoicePreview(null)}>
-                    <section className="fee-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-preview-title" onClick={(event) => event.stopPropagation()}>
-                      <div className="fee-modal-header">
-                        <div><div className="field-label">Preview invoice</div><h3 id="invoice-preview-title">Invoice cicilan</h3></div>
-                        <button type="button" className="fee-modal-close" onClick={() => setInvoicePreview(null)} aria-label="Tutup preview invoice">×</button>
-                      </div>
-                      <div className="fee-detail-list">
-                        <div><span>Nomor invoice</span><strong>{invoicePreview.invoice_number || '-'}</strong></div>
-                        <div><span>Jatuh tempo</span><strong>{invoicePreview.due_date || '-'}</strong></div>
-                        <div><span>Keterangan</span><strong>{invoicePreview.description || 'Pembayaran cicilan'}</strong></div>
-                      </div>
-                      <div className="fee-detail-total"><span>Total tagihan</span><strong>{money(invoicePreview.amount)}</strong></div>
+                  {invoicePreview && <div className="fee-modal-backdrop invoice-preview-backdrop" role="presentation" onClick={() => setInvoicePreview(null)}>
+                    <section className="fee-modal invoice-preview-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-preview-title" onClick={(event) => event.stopPropagation()}>
+                      <div className="invoice-brand"><div><span className="invoice-company">PT. JUARA</span><p>Jasa pengurusan dokumen dan keberangkatan</p></div><div className="invoice-label">INVOICE</div></div>
+                      <div className="invoice-heading"><div><span className="invoice-kicker">TAGIHAN CICILAN</span><h3 id="invoice-preview-title">Invoice #{invoicePreview.invoice_number || '-'}</h3></div><button type="button" className="fee-modal-close" onClick={() => setInvoicePreview(null)} aria-label="Tutup preview invoice">×</button></div>
+                      <div className="invoice-info"><div><span>Ditagihkan kepada</span><strong>{cand?.full_name || 'Nama belum diisi'}</strong><small>{cand?.candidate_id || '-'}</small></div><div><span>Tanggal invoice</span><strong>{dateDisplay(invoicePreview.due_date)}</strong><small>{invoicePreview.description || 'Pembayaran cicilan'}</small></div></div>
+                      <table className="invoice-table"><thead><tr><th>Deskripsi</th><th>Qty</th><th>Jumlah</th></tr></thead><tbody>{[['Jasa pembuatan paspor', finance.finance?.passport_fee], ['Jasa pengurusan visa', finance.finance?.visa_fee], ['Biaya keberangkatan', finance.finance?.departure_fee], ['Biaya lainnya', finance.finance?.other_fee]].filter(([, value]) => Number(value || 0) > 0).map(([label, value]) => <tr key={label}><td>{label}</td><td>1</td><td>{money(value)}</td></tr>)}</tbody></table>
+                      <div className="invoice-summary"><div><span>Total tagihan</span><strong>{money(total)}</strong></div><div><span>Pembayaran cicilan ini</span><strong className="invoice-payment">{money(invoicePreview.amount)}</strong></div><div><span>Total dibayar sampai invoice ini</span><strong>{money(paid)}</strong></div><div className="invoice-balance"><span>Sisa tagihan</span><strong>{money(Math.max(total - paid, 0))}</strong></div></div>
+                      <div className="invoice-status">Status pembayaran: <strong>{invoicePreview.status === 'paid' ? 'LUNAS' : 'SEBAGIAN'}</strong></div>
                     </section>
                   </div>}
                   </>
