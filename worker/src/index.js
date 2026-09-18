@@ -854,8 +854,19 @@ async function listAdminEmailAccounts(env, origin) {
   const username = String(env.CPANEL_USERNAME || '').trim()
   const token = String(env.CPANEL_API_TOKEN || '').trim()
   const domain = String(env.CPANEL_EMAIL_DOMAIN || '').trim()
-  if (!host || !username || !token || !domain) {
-    return json({ configured: false, accounts: [], webmail_url: env.WEBMAIL_URL || null }, 200, origin)
+  const missing = [
+    !host && 'CPANEL_HOST',
+    !username && 'CPANEL_USERNAME',
+    !token && 'CPANEL_API_TOKEN',
+    !domain && 'CPANEL_EMAIL_DOMAIN',
+  ].filter(Boolean)
+  if (missing.length) {
+    return json({
+      configured: false,
+      accounts: [],
+      missing,
+      webmail_url: env.WEBMAIL_URL || null,
+    }, 200, origin)
   }
 
   const endpoint = `https://${host}:2083/execute/Email/list_pops?api.version=1&domain=${encodeURIComponent(domain)}`
