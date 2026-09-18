@@ -16,7 +16,7 @@ function response(body, status, origin, headers = {}) {
     headers: {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Headers': 'Authorization, Content-Type, X-Turnstile-Token',
-      'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
       'Vary': 'Origin',
       ...headers,
     },
@@ -194,23 +194,6 @@ async function listAllAdminDocuments(env, origin) {
     return json({ ok: true }, 201, origin)
   }
 
-  async function addAdminFinanceInvoice(request, candidateId, env, origin) {
-    const body = await request.json().catch(() => null)
-    const amount = Number(body?.amount)
-    const dueDate = String(body?.due_date || '')
-    const description = String(body?.description || '').trim().slice(0, 240)
-    if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
-      return json({ error: 'Nominal dan jatuh tempo cicilan wajib valid.' }, 400, origin)
-    }
-    const invoiceNumber = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
-    const id = crypto.randomUUID()
-    await env.DB.prepare(
-      `INSERT INTO finance_invoices
-       (id, candidate_id, invoice_number, amount, due_date, description)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).bind(id, candidateId, invoiceNumber, amount, dueDate, description).run()
-    return json({ ok: true, invoice: { id, candidate_id: candidateId, invoice_number: invoiceNumber, amount, due_date: dueDate, status: 'open', description, payment_id: null } }, 201, origin)
-  }
   const candidates = await candidateResponse.json()
   const authUsersResponse = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users?per_page=100`, {
     headers: supabaseAdminHeaders(env),
@@ -306,6 +289,24 @@ async function uploadAdminCollectiveDocuments(request, candidateId, env, origin)
     throw error
   }
   return json({ documents: uploaded }, 201, origin)
+}
+
+async function addAdminFinanceInvoice(request, candidateId, env, origin) {
+  const body = await request.json().catch(() => null)
+  const amount = Number(body?.amount)
+  const dueDate = String(body?.due_date || '')
+  const description = String(body?.description || '').trim().slice(0, 240)
+  if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    return json({ error: 'Nominal dan jatuh tempo cicilan wajib valid.' }, 400, origin)
+  }
+  const invoiceNumber = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+  const id = crypto.randomUUID()
+  await env.DB.prepare(
+    `INSERT INTO finance_invoices
+     (id, candidate_id, invoice_number, amount, due_date, description)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  ).bind(id, candidateId, invoiceNumber, amount, dueDate, description).run()
+  return json({ ok: true, invoice: { id, candidate_id: candidateId, invoice_number: invoiceNumber, amount, due_date: dueDate, status: 'open', description, payment_id: null } }, 201, origin)
 }
 
 async function consumeRateLimit(key, limit, env) {
