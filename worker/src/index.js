@@ -299,7 +299,10 @@ async function addAdminFinanceInvoice(request, candidateId, env, origin) {
   if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
     return json({ error: 'Nominal dan jatuh tempo cicilan wajib valid.' }, 400, origin)
   }
-  const invoiceNumber = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+  const { results: existingInvoices } = await env.DB.prepare(
+    'SELECT id FROM finance_invoices WHERE candidate_id = ?',
+  ).bind(candidateId).all()
+  const invoiceNumber = `${candidateId}-${existingInvoices.length + 1}`
   const id = crypto.randomUUID()
   await env.DB.prepare(
     `INSERT INTO finance_invoices
