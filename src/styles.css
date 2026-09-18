@@ -777,9 +777,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .invoice-preview-modal .invoice-balance { margin-top: 5px; border-top: 2px solid var(--ink); border-bottom: 0; color: var(--crimson); font-size: 16px; font-weight: 800; }
 .invoice-preview-modal .invoice-payment { color: var(--crimson); font-weight: 750; }
 .invoice-preview-modal .invoice-status { margin-top: 20px; padding: 11px 14px; color: var(--crimson-deep); background: rgba(200,147,58,.14); font-size: 12px; letter-spacing: .04em; }
-.invoice-upload-box { display: grid; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-.invoice-upload-box .payment-actions { justify-content: flex-start; }
-.invoice-upload-box .turnstile-box { margin: 0; }
+.invoice-preview-modal .invoice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .fee-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .fee-modal-header h3 { margin: 5px 0 0; font-family: var(--serif); font-size: 25px; }
 .fee-modal-close { width: 34px; height: 34px; border: 1px solid var(--line-strong); border-radius: 50%; background: transparent; color: var(--ink); font-size: 24px; line-height: 1; cursor: pointer; }
