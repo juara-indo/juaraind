@@ -18,4 +18,5 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-admin-extra { display: grid; gap: 12px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
 .finance-admin-extra h3 { margin: 5px 0; }
 .finance-admin-extra .proof-accepted { color: #2f7d32; }.finance-admin-extra .proof-rejected { color: #b3261e; }.finance-admin-extra .proof-pending { color: #98610a; }
+.finance-total-detail{display:grid;gap:2px;text-align:left}.finance-total-detail strong{color:var(--crimson);font-size:13px}.finance-total-detail small{color:var(--ink-soft);font-size:10px;line-height:1.35}
 .danger-button { color: #b3261e !important; }

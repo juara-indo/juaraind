@@ -123,13 +123,22 @@ async function listAllAdminDocuments(env, origin) {
     const { results: payments } = await env.DB.prepare(
       'SELECT id, candidate_id, amount, payment_date, note FROM candidate_finance_payments ORDER BY payment_date DESC, created_at DESC',
     ).all()
+    const { results: invoices } = await env.DB.prepare(
+      'SELECT id, candidate_id, invoice_number, amount, currency, due_date, status, description, payment_id, created_at FROM finance_invoices ORDER BY due_date ASC, created_at ASC',
+    ).all()
     const applicationByCandidate = new Map(applications.map((item) => [item.candidate_id, item]))
     const accountByCandidate = new Map(accounts.map((item) => [item.candidate_id, item]))
     const paymentsByCandidate = new Map()
+    const invoicesByCandidate = new Map()
     for (const payment of payments) {
       const list = paymentsByCandidate.get(payment.candidate_id) || []
       list.push(payment)
       paymentsByCandidate.set(payment.candidate_id, list)
+    }
+    for (const invoice of invoices) {
+      const list = invoicesByCandidate.get(invoice.candidate_id) || []
+      list.push(invoice)
+      invoicesByCandidate.set(invoice.candidate_id, list)
     }
     return json({
       candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
@@ -145,6 +154,7 @@ async function listAllAdminDocuments(env, origin) {
           visa_fee: Number(account.visa_fee),
           departure_fee: Number(account.departure_fee),
           payments: paymentsByCandidate.get(candidate.candidate_id) || [],
+          invoices: invoicesByCandidate.get(candidate.candidate_id) || [],
         }
       }),
     }, 200, origin)
@@ -175,10 +185,29 @@ async function listAllAdminDocuments(env, origin) {
     if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(paymentDate)) {
       return json({ error: 'Nominal dan tanggal pembayaran wajib valid.' }, 400, origin)
     }
+
     await env.DB.prepare(
       'INSERT INTO candidate_finance_payments (id, candidate_id, amount, payment_date, note) VALUES (?, ?, ?, ?, ?)',
     ).bind(crypto.randomUUID(), candidateId, amount, paymentDate, note).run()
     return json({ ok: true }, 201, origin)
+  }
+
+  async function addAdminFinanceInvoice(request, candidateId, env, origin) {
+    const body = await request.json().catch(() => null)
+    const amount = Number(body?.amount)
+    const dueDate = String(body?.due_date || '')
+    const description = String(body?.description || '').trim().slice(0, 240)
+    if (!Number.isInteger(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+      return json({ error: 'Nominal dan jatuh tempo cicilan wajib valid.' }, 400, origin)
+    }
+    const invoiceNumber = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+    const id = crypto.randomUUID()
+    await env.DB.prepare(
+      `INSERT INTO finance_invoices
+       (id, candidate_id, invoice_number, amount, due_date, description)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).bind(id, candidateId, invoiceNumber, amount, dueDate, description).run()
+    return json({ ok: true, invoice: { id, candidate_id: candidateId, invoice_number: invoiceNumber, amount, due_date: dueDate, status: 'open', description, payment_id: null } }, 201, origin)
   }
   const candidates = await candidateResponse.json()
   const authUsersResponse = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users?per_page=100`, {
@@ -580,13 +609,22 @@ async function listAdminFinanceEndpoint(env, origin) {
   const { results: payments } = await env.DB.prepare(
     'SELECT id, candidate_id, amount, payment_date, note FROM candidate_finance_payments ORDER BY payment_date DESC, created_at DESC',
   ).all()
+  const { results: invoices } = await env.DB.prepare(
+    'SELECT id, candidate_id, invoice_number, amount, currency, due_date, status, description, payment_id, created_at FROM finance_invoices ORDER BY due_date ASC, created_at ASC',
+  ).all()
   const applicationByCandidate = new Map(applications.map((item) => [item.candidate_id, item]))
   const accountByCandidate = new Map(accounts.map((item) => [item.candidate_id, item]))
   const paymentsByCandidate = new Map()
+  const invoicesByCandidate = new Map()
   for (const payment of payments) {
     const list = paymentsByCandidate.get(payment.candidate_id) || []
     list.push(payment)
     paymentsByCandidate.set(payment.candidate_id, list)
+  }
+  for (const invoice of invoices) {
+    const list = invoicesByCandidate.get(invoice.candidate_id) || []
+    list.push(invoice)
+    invoicesByCandidate.set(invoice.candidate_id, list)
   }
   return json({
     candidates: candidates.filter((candidate) => applicationByCandidate.has(candidate.candidate_id)).map((candidate) => {
@@ -600,6 +638,7 @@ async function listAdminFinanceEndpoint(env, origin) {
         visa_fee: Number(account.visa_fee),
         departure_fee: Number(account.departure_fee),
         payments: paymentsByCandidate.get(candidate.candidate_id) || [],
+        invoices: invoicesByCandidate.get(candidate.candidate_id) || [],
       }
     }),
   }, 200, origin)
@@ -642,7 +681,7 @@ async function candidateFinanceEndpoint(user, token, env, origin) {
       'SELECT id, candidate_id, amount, payment_date, note, created_at FROM candidate_finance_payments WHERE candidate_id = ? ORDER BY payment_date DESC, created_at DESC',
     ).bind(candidateId).all(),
     env.DB.prepare(
-      'SELECT id, candidate_id, invoice_number, amount, currency, due_date, status, description, created_at FROM finance_invoices WHERE candidate_id = ? ORDER BY due_date ASC, created_at ASC',
+      'SELECT id, candidate_id, invoice_number, amount, currency, due_date, status, description, payment_id, created_at FROM finance_invoices WHERE candidate_id = ? ORDER BY due_date ASC, created_at ASC',
     ).bind(candidateId).all(),
     env.DB.prepare(
       `SELECT id, payment_id, invoice_id, file_name, content_type, file_size,
@@ -758,6 +797,36 @@ async function reviewFinanceProof(request, admin, id, env, origin) {
     return json({ error: 'Status review harus accepted atau rejected.' }, 400, origin)
   }
   const note = typeof payload.review_note === 'string' ? payload.review_note.trim().slice(0, 1000) : ''
+  const proof = await env.DB.prepare(
+    `SELECT id, candidate_id, invoice_id, payment_id
+     FROM finance_payment_proofs WHERE id = ? AND status = 'pending'`,
+  ).bind(id).first()
+  if (!proof) return json({ error: 'Bukti tidak ditemukan atau sudah direview.' }, 404, origin)
+  if (payload.status === 'accepted' && proof.invoice_id) {
+    const invoice = await env.DB.prepare(
+      `SELECT id, candidate_id, amount, invoice_number, description, status
+       FROM finance_invoices WHERE id = ? AND status = 'open'`,
+    ).bind(proof.invoice_id).first()
+    if (!invoice || invoice.candidate_id !== proof.candidate_id) return json({ error: 'Invoice tidak ditemukan atau sudah lunas.' }, 404, origin)
+    const paymentId = crypto.randomUUID()
+    const paymentDate = new Date().toISOString().slice(0, 10)
+    const result = await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE finance_payment_proofs
+         SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
+         WHERE id = ? AND status = 'pending'`,
+      ).bind(payload.status, note, admin.id, id),
+      env.DB.prepare(
+        `INSERT INTO candidate_finance_payments (id, candidate_id, amount, payment_date, note)
+         VALUES (?, ?, ?, ?, ?)`,
+      ).bind(paymentId, invoice.candidate_id, invoice.amount, paymentDate, `Pembayaran ${invoice.invoice_number}`),
+      env.DB.prepare(
+        `UPDATE finance_invoices SET status = 'paid', payment_id = ? WHERE id = ? AND status = 'open'`,
+      ).bind(paymentId, invoice.id),
+    ])
+    if (!result[0]?.meta?.changes || !result[2]?.meta?.changes) return json({ error: 'Bukti sudah diproses atau invoice sudah lunas.' }, 409, origin)
+    return json({ id, status: payload.status, review_note: note, payment_id: paymentId }, 200, origin)
+  }
   const result = await env.DB.prepare(
     `UPDATE finance_payment_proofs
      SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP
@@ -853,6 +922,10 @@ export default {
       if (financeMatch && request.method === 'POST') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
         return addAdminFinancePaymentEndpoint(request, decodeURIComponent(financeMatch[1]), env, origin)
+      }
+      if (financeMatch && request.method === 'PUT') {
+        if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
+        return addAdminFinanceInvoice(request, decodeURIComponent(financeMatch[1]), env, origin)
       }
       const adminCollectiveMatch = url.pathname.match(/^\/admin\/candidates\/([^/]+)\/collective$/)
       if (adminCollectiveMatch && request.method === 'POST') {
