@@ -48,6 +48,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-drawer .finance-payment-section>.documents-button{margin-top:16px}
 .finance-drawer .finance-history{display:grid;gap:0}
 .finance-drawer .finance-history-row{grid-template-columns:120px minmax(110px,150px) 1fr auto;align-items:center;gap:14px;padding:13px 0}
+.finance-drawer .finance-invoice-history-row{grid-template-columns:120px minmax(110px,150px) 1fr}
 .finance-drawer .finance-history-row strong{font-variant-numeric:tabular-nums}
 .finance-drawer .finance-history-row small{font-size:11px}
 .finance-drawer .finance-history-actions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
@@ -57,6 +58,12 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-drawer .finance-invoice-status.status-paid,.finance-drawer .finance-invoice-status.proof-accepted{color:#2f7d32;background:rgba(47,125,50,.1)}
 .finance-drawer .finance-invoice-status.status-void,.finance-drawer .finance-invoice-status.proof-rejected{color:#b3261e;background:rgba(179,38,30,.08)}
 .finance-drawer .finance-invoice-status.proof-pending{color:#98610a;background:rgba(200,147,58,.1)}
+.finance-drawer .finance-status-line{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px}
+.finance-drawer .finance-status-line .finance-invoice-status{margin-top:0}
+.finance-inline-action{min-height:28px;padding:4px 9px;border:1px solid rgba(25,20,16,.2);border-radius:6px;background:var(--paper-strong);color:var(--ink);font:inherit;font-size:10px;font-weight:800;line-height:1;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+.finance-inline-action:hover{background:rgba(200,147,58,.14);border-color:rgba(179,38,30,.32);transform:translateY(-1px)}
+.finance-inline-accept{border-color:rgba(47,125,50,.35);color:#2f7d32;background:rgba(47,125,50,.08)}
+.finance-proof-preview .document-preview-frame,.finance-proof-preview .document-preview-image{max-height:68vh}
 .finance-drawer .finance-invoice-history-row{background:rgba(200,147,58,.06)}
 .finance-drawer .finance-admin-extra{display:grid;gap:14px}
 .finance-drawer .finance-admin-extra h3{margin:0;color:var(--ink);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
