@@ -754,7 +754,7 @@ footer a:hover { opacity: 1; color: var(--gold); }
 .proof-status { font-size: 12px; font-weight: 800; }.proof-pending { color: #98610a; }.proof-accepted { color: #2f7d32; }.proof-rejected { color: var(--crimson); }
 .fee-modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: rgba(25,18,15,.58); }
 .fee-modal { width: min(100%, 480px); max-height: calc(100dvh - 40px); box-sizing: border-box; overflow-y: auto; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: 0 24px 70px rgba(25,18,15,.28); }
-.invoice-preview-modal { width: min(100%, 760px); padding: 38px 42px; border-radius: 3px 18px 18px 18px; background: #fff; }
+.invoice-preview-modal { width: min(100%, 860px); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 28px 32px; border-radius: 3px 18px 18px 18px; background: #fff; zoom: .82; }
 .invoice-preview-modal .invoice-brand { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 26px; border-bottom: 2px solid var(--crimson); }
 .invoice-preview-modal .invoice-company { color: var(--crimson); font-family: var(--serif); font-size: 25px; font-weight: 700; letter-spacing: .08em; }
 .invoice-preview-modal .invoice-brand p { margin-top: 6px; color: var(--ink-soft); font-size: 11px; }
@@ -791,12 +791,20 @@ footer a:hover { opacity: 1; color: var(--gold); }
   .candidate-mode .biodata-layout { grid-template-columns: 1fr; gap: 24px; }
   .candidate-mode .biodata-form { box-shadow: 6px 6px 0 rgba(200,147,58,.14); }
   .candidate-mode .id-card { margin-bottom: 30px; }
-  .invoice-preview-modal { padding: 28px 22px; }
+  .invoice-preview-modal { padding: 24px 20px; zoom: .78; }
   .invoice-preview-modal .invoice-label { font-size: 19px; }
   .invoice-preview-modal .invoice-company { font-size: 20px; }
   .invoice-preview-modal .invoice-info { grid-template-columns: 1fr; }
   .invoice-preview-modal .invoice-table th, .invoice-preview-modal .invoice-table td { padding: 10px 6px; }
   .invoice-preview-modal .invoice-table th:last-child, .invoice-preview-modal .invoice-table td:last-child { width: 125px; }
+}
+@media print {
+  @page { size: A4; margin: 0; }
+  body > * { visibility: hidden; }
+  .invoice-preview-backdrop, .invoice-preview-backdrop * { visibility: visible; }
+  .invoice-preview-backdrop { position: static; display: block; padding: 0; background: #fff; }
+  .invoice-preview-modal { width: 210mm; min-height: 297mm; max-height: none; overflow: visible; margin: 0; padding: 16mm; border: 0; border-radius: 0; box-shadow: none; zoom: 1; }
+  .invoice-preview-modal .no-print { display: none !important; }
 }
 
 :where(button, input, textarea, select):focus-visible {
