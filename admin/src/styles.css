@@ -22,3 +22,42 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 @keyframes drawer-in{from{transform:translateX(-100%);opacity:.7}to{transform:translateX(0);opacity:1}}
 .finance-total-detail{display:grid;gap:2px;text-align:left}.finance-total-detail strong{color:var(--crimson);font-size:13px}.finance-total-detail small{color:var(--ink-soft);font-size:10px;line-height:1.35}
 .danger-button { color: #b3261e !important; }
+
+/* Finance drawer refinement */
+.finance-drawer-backdrop{background:rgba(20,18,16,.56)}
+.finance-drawer{width:min(720px,calc(100% - 18px));padding:0 34px 42px;border-radius:0 28px 28px 0;box-shadow:24px 0 72px rgba(20,18,16,.28)}
+.finance-drawer .modal-header{position:sticky;top:0;z-index:2;margin:0 -34px 28px;padding:30px 34px 24px;background:linear-gradient(180deg,var(--paper-strong) 82%,rgba(255,250,240,0));border-bottom:1px solid rgba(25,20,16,.08)}
+.finance-drawer .modal-header h2{margin:8px 0 7px;font-size:clamp(30px,4vw,42px);line-height:.98}
+.finance-drawer .modal-header p{font-size:12px;letter-spacing:.08em}
+.finance-drawer .icon-button{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;background:rgba(242,234,211,.42)}
+.finance-drawer .icon-button:hover{background:rgba(179,38,30,.1);border-color:rgba(179,38,30,.3)}
+.finance-drawer .finance-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.finance-drawer .finance-fields label{gap:8px}
+.finance-drawer .finance-fields span,.finance-drawer .finance-payment-section h3,.finance-drawer .finance-history h3{font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.finance-drawer .finance-fields input{min-height:48px;padding:12px 14px;border-radius:8px;background:rgba(250,246,236,.7);font-variant-numeric:tabular-nums;transition:border-color .2s,box-shadow .2s,background .2s}
+.finance-drawer .finance-fields input:hover{background:var(--paper-strong)}
+.finance-drawer .finance-fields input:focus{border-color:var(--crimson);background:var(--paper-strong);box-shadow:0 0 0 4px rgba(179,38,30,.1);outline:0}
+.finance-drawer>.collective-convert{height:50px;margin-top:22px;font-size:14px}
+.finance-drawer .finance-payment-section,.finance-drawer .finance-history,.finance-drawer .finance-admin-extra{margin-top:32px;padding:24px 22px 22px;border:1px solid var(--line);border-radius:14px;background:rgba(242,234,211,.28)}
+.finance-drawer .finance-payment-section h3,.finance-drawer .finance-history h3{margin:0 0 18px;color:var(--ink);font-size:12px}
+.finance-drawer .finance-payment-section .finance-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+.finance-drawer .finance-payment-section>.documents-button{margin-top:16px}
+.finance-drawer .finance-history{display:grid;gap:0}
+.finance-drawer .finance-history-row{grid-template-columns:120px minmax(110px,150px) 1fr auto;align-items:center;gap:14px;padding:13px 0}
+.finance-drawer .finance-history-row strong{font-variant-numeric:tabular-nums}
+.finance-drawer .finance-history-row small{font-size:11px}
+.finance-drawer .finance-admin-extra{display:grid;gap:14px}
+.finance-drawer .finance-admin-extra h3{margin:0;color:var(--ink);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.finance-drawer .finance-admin-extra .finance-fields{grid-template-columns:1fr 1.5fr}
+.finance-drawer .finance-admin-extra .finance-fields label.finance-note{grid-column:auto}
+
+@media(max-width:760px){
+  .finance-drawer{width:calc(100% - 8px);padding:0 20px 30px;border-radius:0 20px 20px 0}
+  .finance-drawer .modal-header{margin-left:-20px;margin-right:-20px;padding:24px 20px 20px}
+  .finance-drawer .finance-fields,.finance-drawer .finance-payment-section .finance-fields,.finance-drawer .finance-admin-extra .finance-fields{grid-template-columns:1fr}
+  .finance-drawer .finance-admin-extra .finance-fields label.finance-note{grid-column:auto}
+  .finance-drawer .finance-payment-section,.finance-drawer .finance-history,.finance-drawer .finance-admin-extra{padding:20px 16px}
+  .finance-drawer .finance-history-row{grid-template-columns:1fr auto;gap:8px 12px}
+  .finance-drawer .finance-history-row small{grid-column:1/-1}
+  .finance-drawer .finance-history-row .invoice-button{grid-column:2;grid-row:1}
+}
