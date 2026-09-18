@@ -704,13 +704,12 @@ footer a:hover { opacity: 1; color: var(--gold); }
   padding: 15px 17px;
   border-radius: 3px 14px 14px 14px;
   background: rgba(250,246,236,.72);
-  transition: transform .25s var(--ease), border-color .25s, background .25s, box-shadow .25s;
 }
 .candidate-mode .document-slot.is-special-start {
   margin-top: 16px;
   border-top: 2px solid var(--gold);
 }
-.candidate-mode .document-slot:hover { transform: translateX(4px); border-color: rgba(179,38,30,.35); background: var(--paper); box-shadow: 5px 5px 0 rgba(200,147,58,.13); }
+.candidate-mode .document-slot:hover { border-color: rgba(179,38,30,.35); background: var(--paper); }
 .candidate-mode .document-slot.is-rejected { box-shadow: 4px 4px 0 rgba(179,38,30,.12); }
 .supporting-document-slot { grid-template-columns: minmax(0,1fr) auto; align-items: start; }
 .supporting-add-btn { width: 38px; height: 38px; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--paper); background: var(--crimson); font-size: 24px; line-height: 1; }
