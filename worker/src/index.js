@@ -871,7 +871,7 @@ async function listAdminEmailAccounts(env, origin) {
 
   const endpoint = `https://${host}:2083/execute/Email/list_pops?api.version=1&domain=${encodeURIComponent(domain)}`
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 15000)
+  const timeout = setTimeout(() => controller.abort(), 5000)
   let response
   try {
     response = await fetch(endpoint, {
@@ -918,7 +918,12 @@ export default {
       }
       if (url.pathname === '/admin/email/accounts' && request.method === 'GET') {
         if (!await authenticateAdmin(request, env)) return json({ error: 'Akses admin ditolak.' }, 403, origin)
-        return listAdminEmailAccounts(env, origin)
+        try {
+          return await listAdminEmailAccounts(env, origin)
+        } catch (error) {
+          console.error('Admin email integration failed', error)
+          return json({ error: error instanceof Error ? error.message : 'Gagal menghubungi cPanel.' }, 502, origin)
+        }
       }
       if (url.pathname === '/account/role' && request.method === 'GET') {
         if (isAdminUser(user, env)) return json({ role: 'admin' }, 200, origin)
