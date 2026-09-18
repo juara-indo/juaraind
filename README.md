@@ -159,6 +159,9 @@ disimpan privat di Cloudflare R2 dan metadata file disimpan di Cloudflare D1.
    ```bash
    wrangler deploy
    ```
+   Untuk deploy melalui GitHub Actions, buat repository secret `CLOUDFLARE_API_TOKEN`.
+   Workflow akan mengirim token ini ke Wrangler secara non-interaktif; jangan simpan
+   token di `wrangler.toml`, source code, atau file `.env` yang di-commit.
 7. Isi `VITE_DOCUMENTS_API_URL` di `.env` dan di GitHub Actions secrets
    dengan URL Worker berikut:
    `https://juaraind-documents.juaraind-documents.workers.dev`
