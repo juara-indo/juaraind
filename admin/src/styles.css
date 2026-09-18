@@ -27,12 +27,12 @@ header{position:sticky;top:0;z-index:5;display:flex;align-items:flex-start;justi
 /* Finance drawer refinement */
 .finance-drawer-backdrop{background:rgba(20,18,16,.56)}
 .finance-drawer{width:min(720px,calc(100% - 18px));padding:0 34px 42px;border-radius:0 28px 28px 0;box-shadow:24px 0 72px rgba(20,18,16,.28)}
-.finance-drawer .modal-header{position:sticky;top:0;z-index:2;margin:0 -34px 28px;padding:30px 34px 24px;background:var(--paper-strong);border-bottom:1px solid rgba(25,20,16,.12);box-shadow:0 8px 16px rgba(25,20,16,.04)}
-.finance-drawer .modal-header h2{margin:8px 0 7px;font-size:clamp(26px,3.2vw,34px);line-height:1}
+.finance-drawer .modal-header{position:sticky;top:0;z-index:2;margin:0 -34px 18px;padding:18px 34px 16px;background:var(--paper-strong);border-bottom:1px solid rgba(25,20,16,.12);box-shadow:0 8px 16px rgba(25,20,16,.04)}
+.finance-drawer .modal-header h2{margin:5px 0 4px;font-size:clamp(24px,2.7vw,30px);line-height:1}
 .finance-drawer .modal-header p{font-size:12px;letter-spacing:.08em}
-.finance-header-total{display:grid;align-content:center;gap:5px;margin-left:auto;padding:11px 16px;border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
+.finance-header-total{display:grid;align-content:center;gap:4px;min-width:0;max-width:280px;margin-left:auto;padding:8px 14px;border-left:1px solid var(--line);font-variant-numeric:tabular-nums}
 .finance-header-total span{color:var(--ink-soft);font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
-.finance-header-total strong{color:var(--crimson);font-size:17px;white-space:nowrap}
+.finance-header-total strong{color:var(--crimson);font-size:16px;line-height:1.1;white-space:nowrap}
 .finance-header-total small{color:var(--ink-soft);font-size:10px;line-height:1.3}
 .finance-drawer .icon-button{width:42px;height:42px;border:1px solid var(--line);border-radius:50%;background:rgba(242,234,211,.42)}
 .finance-drawer .icon-button:hover{background:rgba(179,38,30,.1);border-color:rgba(179,38,30,.3)}
@@ -92,9 +92,9 @@ header{position:sticky;top:0;z-index:5;display:flex;align-items:flex-start;justi
   header{grid-template-columns:1fr}
   .header-side{width:100%;align-items:flex-end}
   .finance-drawer{width:calc(100% - 8px);padding:0 20px 30px;border-radius:0 20px 20px 0}
-  .finance-drawer .modal-header{margin-left:-20px;margin-right:-20px;padding:24px 20px 20px}
+  .finance-drawer .modal-header{margin-left:-20px;margin-right:-20px;padding:18px 20px 16px}
   .finance-drawer .modal-header{flex-wrap:wrap}
-  .finance-header-total{order:3;width:100%;margin:4px 0 0;padding:12px 0 0;border-top:1px solid var(--line);border-left:0}
+  .finance-header-total{order:3;width:100%;margin:4px 0 0;padding:10px 0 0;border-top:1px solid var(--line);border-left:0}
   .finance-drawer .finance-fields,.finance-drawer .finance-payment-section .finance-fields,.finance-drawer .finance-admin-extra .finance-fields{grid-template-columns:1fr}
   .finance-drawer .finance-admin-extra .finance-fields label.finance-note{grid-column:auto}
   .finance-drawer .finance-payment-section,.finance-drawer .finance-history,.finance-drawer .finance-admin-extra{padding:20px 16px}
