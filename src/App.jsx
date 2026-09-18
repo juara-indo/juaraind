@@ -659,7 +659,7 @@ function useDocuments(session) {
     files.forEach((file, index) => {
       body.append('files', file)
       body.append('document_types', documentTypes[index])
-      body.append('document_names', documentNames[index] || '')
+      if (documentNames[index]) body.append('document_names', documentNames[index])
     })
     await request('/documents', {
       method: 'POST',

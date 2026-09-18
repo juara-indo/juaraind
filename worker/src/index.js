@@ -405,7 +405,7 @@ async function uploadDocuments(request, user, token, env, origin) {
   if (!files.length || files.some((file) => !(file instanceof File))) {
     return json({ error: 'File dokumen wajib dipilih.' }, 400, origin)
   }
-  if (files.length !== documentTypes.length || files.length !== documentNames.length || files.length > 10) {
+  if (files.length !== documentTypes.length || files.length > 10) {
     return json({ error: 'Data dokumen tidak valid.' }, 400, origin)
   }
   for (const [index, file] of files.entries()) {
@@ -430,7 +430,7 @@ async function uploadDocuments(request, user, token, env, origin) {
     for (const [index, file] of files.entries()) {
       const id = crypto.randomUUID()
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-110) || 'document'
-      const customName = documentTypes[index] === 'pendukung' ? documentNames[index].trim().replace(/[^a-zA-Z0-9._ -]/g, '_').slice(0, 100) : ''
+      const customName = documentTypes[index] === 'pendukung' ? String(documentNames[index] || '').trim().replace(/[^a-zA-Z0-9._ -]/g, '_').slice(0, 100) : ''
       if (documentTypes[index] === 'pendukung' && !customName) throw new Error('Nama dokumen pendukung wajib diisi.')
       const candidateFolder = safeObjectSegment(candidate.candidate_id)
       const documentLabel = safeObjectSegment(documentTypes[index]).toUpperCase()
