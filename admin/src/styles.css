@@ -48,12 +48,12 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-drawer .finance-payment-section .finance-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
 .finance-drawer .finance-payment-section>.documents-button{margin-top:16px}
 .finance-drawer .finance-history{display:grid;gap:0}
-.finance-drawer .finance-history-row{grid-template-columns:120px minmax(110px,150px) 1fr auto;align-items:center;gap:14px;padding:13px 0}
-.finance-drawer .finance-invoice-history-row{grid-template-columns:120px minmax(110px,150px) minmax(190px,1fr) auto}
+.finance-drawer .finance-history-row{grid-template-columns:minmax(90px,120px) minmax(100px,150px) minmax(0,1fr) minmax(0,auto);align-items:center;gap:10px;padding:13px 0}
+.finance-drawer .finance-invoice-history-row{grid-template-columns:minmax(90px,120px) minmax(100px,150px) minmax(0,1fr) minmax(0,170px)}
 .finance-drawer .finance-history-row strong{font-variant-numeric:tabular-nums}
 .finance-drawer .finance-history-row small{font-size:11px}
-.finance-drawer .finance-history-actions{display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:nowrap}
-.finance-drawer .finance-history-actions .invoice-button{padding:5px 7px;font-size:10px}
+.finance-drawer .finance-history-actions{display:flex;min-width:0;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:nowrap}
+.finance-drawer .finance-history-actions .invoice-button{min-width:0;flex:1 1 0;padding:5px 4px;font-size:10px}
 .finance-drawer .finance-proof-awaiting{color:var(--ink-soft);font-size:10px;font-weight:750;white-space:nowrap}
 .finance-drawer .finance-invoice-status{display:inline-flex;align-items:center;margin-top:5px;padding:4px 8px;border:1px solid currentColor;border-radius:999px;font-style:normal;font-size:10px;font-weight:800;line-height:1;letter-spacing:.02em}
 .finance-drawer .finance-invoice-status.status-open{color:#98610a;background:rgba(200,147,58,.1)}
