@@ -360,10 +360,10 @@ async function listDocuments(userId, env, origin) {
   ).bind(userId).first()
   return json({
     documents: results,
-    agencyDocuments: {
+    agencyDocuments: application ? {
       paspor: Boolean(application?.passport_by_agency),
       visa: Boolean(application?.visa_by_agency),
-    },
+    } : null,
   }, 200, origin)
 }
 

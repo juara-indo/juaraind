@@ -614,7 +614,15 @@ const documentTypes = [
 
 function useDocuments(session) {
   const [documents, setDocuments] = useState([])
-  const [agencyDocuments, setAgencyDocuments] = useState({ paspor: false, visa: false })
+  const [agencyDocuments, setAgencyDocuments] = useState(() => {
+    try {
+      return session?.user?.id
+        ? JSON.parse(sessionStorage.getItem(`juara-agency-documents-${session.user.id}`) || '{"paspor":false,"visa":false}')
+        : { paspor: false, visa: false }
+    } catch {
+      return { paspor: false, visa: false }
+    }
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -1123,7 +1131,11 @@ function AuthSection({ session, loading: sessLoading, roleError, signInWithGoogl
 
   const toggleAgencyDocument = (documentType) => (event) => {
     const checked = event.target.checked
-    setAgencyDocuments((current) => ({ ...current, [documentType]: checked }))
+    setAgencyDocuments((current) => {
+      const next = { ...current, [documentType]: checked }
+      try { sessionStorage.setItem(`juara-agency-documents-${session.user.id}`, JSON.stringify(next)) } catch { /* cache is optional */ }
+      return next
+    })
     if (checked) {
       setSelectedDocuments((current) => {
         const next = { ...current }
