@@ -18,5 +18,7 @@ header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
 .finance-admin-extra { display: grid; gap: 12px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
 .finance-admin-extra h3 { margin: 5px 0; }
 .finance-admin-extra .proof-accepted { color: #2f7d32; }.finance-admin-extra .proof-rejected { color: #b3261e; }.finance-admin-extra .proof-pending { color: #98610a; }
+.finance-drawer-backdrop{display:block;padding:0;background:rgba(20,18,16,.48)}.finance-drawer{width:min(680px,calc(100% - 28px));height:100%;max-height:none;margin:0 auto 0 0;overflow:auto;border-radius:0 22px 22px 0;box-shadow:18px 0 50px rgba(20,18,16,.28);animation:drawer-in .35s var(--ease) both}.finance-total-amount{display:block;text-align:left}
+@keyframes drawer-in{from{transform:translateX(-100%);opacity:.7}to{transform:translateX(0);opacity:1}}
 .finance-total-detail{display:grid;gap:2px;text-align:left}.finance-total-detail strong{color:var(--crimson);font-size:13px}.finance-total-detail small{color:var(--ink-soft);font-size:10px;line-height:1.35}
 .danger-button { color: #b3261e !important; }
